@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Snarko
 
-## Getting Started
+A premium browser gaming platform. This repository is currently in
+**Phase 0 — Foundation**: project tooling, structure, design tokens, SEO
+plumbing, and testing/CI are set up. There is no catalog, game integration,
+or finished homepage yet — see [`docs/PHASES.md`](./docs/PHASES.md) for what's
+deferred and why.
 
-First, run the development server:
+## Stack
+
+- [Next.js](https://nextjs.org) 16 (App Router, Turbopack)
+- React 19 + TypeScript (strict)
+- Tailwind CSS v4
+- [Motion](https://motion.dev) for React (`motion/react`)
+- [Lucide](https://lucide.dev) icons
+- Vitest + React Testing Library (unit/component tests)
+- Playwright (e2e smoke test)
+- ESLint (flat config) + Prettier
+
+## Requirements
+
+- Node.js version pinned in [`.nvmrc`](./.nvmrc) (22, current LTS). Next.js
+  16 requires Node 20.9+.
+- npm (this project commits `package-lock.json`).
+
+## Getting started
 
 ```bash
+nvm use                      # or install the Node version in .nvmrc manually
+npm install
+cp .env.example .env.local   # optional locally; see docs/SEO.md
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run dev          # Dev server
+npm run build         # Production build
+npm run start         # Run the production build
+npm run lint           # ESLint
+npm run typecheck      # tsc --noEmit
+npm run test            # Vitest (unit/component)
+npm run test:watch      # Vitest, watch mode
+npm run test:e2e        # Playwright smoke test
+npm run format           # Prettier, write
+npm run format:check    # Prettier, check only
+```
 
-## Learn More
+## Environment
 
-To learn more about Next.js, take a look at the following resources:
+See [`.env.example`](./.env.example). `NEXT_PUBLIC_SITE_URL` controls the
+canonical origin used in metadata, `robots.txt`, and `sitemap.xml` — required
+before a real production deploy, optional in local development (falls back
+to `http://localhost:3000`). Details in
+[`docs/SEO.md`](./docs/SEO.md#canonical-production-origin).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Documentation
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) — structure and
+  architectural boundaries
+- [`docs/DEVELOPMENT.md`](./docs/DEVELOPMENT.md) — local workflow, scripts,
+  conventions, REA/MCP status
+- [`docs/SEO.md`](./docs/SEO.md) — metadata, canonical URLs, sitemap, robots
+- [`docs/ANIMATIONS.md`](./docs/ANIMATIONS.md) — Motion and CSS animation
+  rules, reduced-motion handling
+- [`docs/GAME_DELIVERY.md`](./docs/GAME_DELIVERY.md) — future game
+  integration and asset-delivery constraints
+- [`docs/PHASES.md`](./docs/PHASES.md) — roadmap and what's deferred
 
-## Deploy on Vercel
+## Deployment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Not configured in Phase 0. No deploy has been performed and no external
+resources have been created. See
+[`docs/SEO.md`](./docs/SEO.md#what-must-wait) for what has to be set before a
+real deploy (primarily `NEXT_PUBLIC_SITE_URL`).

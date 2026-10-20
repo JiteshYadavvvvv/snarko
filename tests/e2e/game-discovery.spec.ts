@@ -62,6 +62,9 @@ test("full discovery journey: home, category, game detail, and back", async ({
     .click();
   await expect(page).toHaveURL("/");
   await expect(
-    page.getByRole("heading", { level: 1, name: "Play now. Argue later." }),
+    page.getByRole("heading", {
+      level: 1,
+      name: "Browser games, no waiting around.",
+    }),
   ).toBeVisible();
 });

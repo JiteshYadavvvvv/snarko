@@ -38,7 +38,7 @@ export function SearchBar({
         onChange={(event) => onChange(event.target.value)}
         aria-label={label}
         placeholder={placeholder}
-        className="bg-surface border-border text-foreground placeholder:text-muted-foreground w-full rounded-md border py-2 pr-9 pl-9 text-sm"
+        className="bg-surface border-border-strong text-foreground placeholder:text-muted-foreground w-full rounded-md border py-2 pr-9 pl-9 text-sm"
       />
       {value.length > 0 && (
         <button

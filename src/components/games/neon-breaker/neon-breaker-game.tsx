@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Pause, Play, RotateCcw } from "lucide-react";
+import { Heart, Pause, Play, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   LOGICAL_HEIGHT,
@@ -379,137 +379,148 @@ export function NeonBreakerGame() {
 
   if (initFailed) {
     return (
-      <div className="bg-surface-elevated border-border flex aspect-video flex-col items-center justify-center gap-3 rounded-lg border text-center">
-        <p className="text-foreground font-medium">
-          The game couldn&apos;t start in this browser.
-        </p>
-        <Button
-          variant="secondary"
-          onClick={() => {
-            setInitFailed(false);
-            setRetryKey((value) => value + 1);
-          }}
-        >
-          Try again
-        </Button>
+      <div className="theme-dark bg-background border-border rounded-xl border p-6">
+        <div className="bg-surface-elevated flex aspect-video flex-col items-center justify-center gap-3 rounded-lg text-center">
+          <p className="text-foreground font-medium">
+            The game couldn&apos;t start in this browser.
+          </p>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setInitFailed(false);
+              setRetryKey((value) => value + 1);
+            }}
+          >
+            Try again
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      <div aria-live="polite" className="sr-only" ref={liveRegionRef} />
-      <div className="text-foreground flex flex-wrap items-center justify-between gap-3 text-sm">
-        <div className="flex items-center gap-4">
-          <span>
-            Score:{" "}
-            <span className="font-semibold" data-testid="neon-breaker-score">
-              {hud.score}
+    <div className="theme-dark bg-background border-border rounded-xl border p-4 sm:p-6">
+      <div className="flex flex-col gap-3">
+        <div aria-live="polite" className="sr-only" ref={liveRegionRef} />
+        <div className="text-foreground flex flex-wrap items-center justify-between gap-3 text-sm">
+          <div className="flex items-center gap-4">
+            <span>
+              Score:{" "}
+              <span className="font-semibold" data-testid="neon-breaker-score">
+                {hud.score}
+              </span>
             </span>
-          </span>
-          <span>
-            Lives:{" "}
-            <span className="font-semibold" data-testid="neon-breaker-lives">
-              {hud.lives}
+            <span className="inline-flex items-center gap-1.5">
+              <Heart
+                className="text-brand-red size-4"
+                fill="currentColor"
+                aria-hidden="true"
+              />
+              Lives:{" "}
+              <span data-testid="neon-breaker-lives" className="font-semibold">
+                {hud.lives}
+              </span>
             </span>
-          </span>
-          <span>
-            Level:{" "}
-            <span className="font-semibold" data-testid="neon-breaker-level">
-              {hud.level}/{MAX_LEVEL}
+            <span>
+              Level:{" "}
+              <span className="font-semibold" data-testid="neon-breaker-level">
+                {hud.level}/{MAX_LEVEL}
+              </span>
             </span>
-          </span>
-        </div>
-        {(hud.status === "playing" || hud.status === "paused") && (
-          <div className="flex items-center gap-2">
-            <Button variant="secondary" onClick={handlePauseToggle}>
-              {hud.status === "playing" ? (
-                <>
-                  <Pause className="size-4" aria-hidden="true" />
-                  Pause
-                </>
-              ) : (
-                <>
-                  <Play className="size-4" aria-hidden="true" />
-                  Resume
-                </>
-              )}
-            </Button>
-            <Button variant="ghost" onClick={handleRestart}>
-              <RotateCcw className="size-4" aria-hidden="true" />
-              Restart
-            </Button>
           </div>
-        )}
-      </div>
+          {(hud.status === "playing" || hud.status === "paused") && (
+            <div className="flex items-center gap-2">
+              <Button variant="secondary" onClick={handlePauseToggle}>
+                {hud.status === "playing" ? (
+                  <>
+                    <Pause className="size-4" aria-hidden="true" />
+                    Pause
+                  </>
+                ) : (
+                  <>
+                    <Play className="size-4" aria-hidden="true" />
+                    Resume
+                  </>
+                )}
+              </Button>
+              <Button variant="ghost" onClick={handleRestart}>
+                <RotateCcw className="size-4" aria-hidden="true" />
+                Restart
+              </Button>
+            </div>
+          )}
+        </div>
 
-      <div className="relative" key={retryKey}>
-        <GameCanvas
-          stateRef={stateRef}
-          initialHud={hud}
-          onHudChange={handleHudChange}
-          announce={announce}
-          onInitError={handleInitError}
-        />
+        <div className="relative" key={retryKey}>
+          <GameCanvas
+            stateRef={stateRef}
+            initialHud={hud}
+            onHudChange={handleHudChange}
+            announce={announce}
+            onInitError={handleInitError}
+          />
 
-        {hud.status === "idle" && (
-          <GameOverlay>
-            <h2 className="text-foreground text-2xl font-bold">
-              Ready to play?
-            </h2>
-            <p className="text-muted-foreground max-w-xs text-sm">
-              Break every block without losing all three lives. Five levels,
-              each one faster than the last.
-            </p>
-            <Button onClick={handleStart}>Start</Button>
-          </GameOverlay>
-        )}
+          {hud.status === "idle" && (
+            <GameOverlay>
+              <h2 className="text-foreground text-2xl font-bold">
+                Ready to play?
+              </h2>
+              <p className="text-muted-foreground max-w-xs text-sm">
+                Break every block without losing all three lives. Five levels,
+                each one faster than the last.
+              </p>
+              <Button onClick={handleStart}>Start</Button>
+            </GameOverlay>
+          )}
 
-        {hud.status === "paused" && (
-          <GameOverlay>
-            <h2 className="text-foreground text-2xl font-bold">Paused</h2>
-            <Button onClick={handlePauseToggle}>Continue playing</Button>
-          </GameOverlay>
-        )}
+          {hud.status === "paused" && (
+            <GameOverlay>
+              <h2 className="text-foreground text-2xl font-bold">Paused</h2>
+              <Button onClick={handlePauseToggle}>Continue playing</Button>
+            </GameOverlay>
+          )}
 
-        {hud.status === "level-complete" && (
-          <GameOverlay>
-            <h2 className="text-foreground text-2xl font-bold">
-              Level {hud.level} complete
-            </h2>
-            <p className="text-muted-foreground text-sm">Score: {hud.score}</p>
-            <Button onClick={handleContinue}>Next level</Button>
-          </GameOverlay>
-        )}
+          {hud.status === "level-complete" && (
+            <GameOverlay>
+              <h2 className="text-foreground text-2xl font-bold">
+                Level {hud.level} complete
+              </h2>
+              <p className="text-muted-foreground text-sm">
+                Score: {hud.score}
+              </p>
+              <Button onClick={handleContinue}>Next level</Button>
+            </GameOverlay>
+          )}
 
-        {hud.status === "game-over" && (
-          <GameOverlay>
-            <h2 className="text-foreground text-2xl font-bold">Game over</h2>
-            <p className="text-muted-foreground text-sm">
-              Final score: {hud.score}
-            </p>
-            <Button onClick={handleRestart}>Restart</Button>
-          </GameOverlay>
-        )}
+          {hud.status === "game-over" && (
+            <GameOverlay>
+              <h2 className="text-foreground text-2xl font-bold">Game over</h2>
+              <p className="text-muted-foreground text-sm">
+                Final score: {hud.score}
+              </p>
+              <Button onClick={handleRestart}>Restart</Button>
+            </GameOverlay>
+          )}
 
-        {hud.status === "won" && (
-          <GameOverlay>
-            <h2 className="text-foreground text-2xl font-bold">
-              You cleared every level
-            </h2>
-            <p className="text-muted-foreground text-sm">
-              Final score: {hud.score}
-            </p>
-            <Button onClick={handleRestart}>Play again</Button>
-          </GameOverlay>
-        )}
-      </div>
+          {hud.status === "won" && (
+            <GameOverlay>
+              <h2 className="text-foreground text-2xl font-bold">
+                You cleared every level
+              </h2>
+              <p className="text-muted-foreground text-sm">
+                Final score: {hud.score}
+              </p>
+              <Button onClick={handleRestart}>Play again</Button>
+            </GameOverlay>
+          )}
+        </div>
 
-      <div className="text-muted-foreground text-xs leading-relaxed">
-        <span className="text-foreground font-medium">Controls:</span> Arrow
-        keys or A/D to move, Space to launch the ball, Escape to pause. Move the
-        mouse or drag with a finger to control the paddle; click or tap to
-        launch.
+        <div className="text-muted-foreground text-xs leading-relaxed">
+          <span className="text-foreground font-medium">Controls:</span> Arrow
+          keys or A/D to move, Space to launch the ball, Escape to pause. Move
+          the mouse or drag with a finger to control the paddle; click or tap to
+          launch.
+        </div>
       </div>
     </div>
   );

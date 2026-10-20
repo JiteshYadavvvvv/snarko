@@ -1,14 +1,19 @@
 "use client";
 
 import { useState, type ComponentType } from "react";
-import { Gamepad2 } from "lucide-react";
+import { GameArtwork } from "@/components/games/game-artwork";
 import { Button } from "@/components/ui/button";
+import type { GameCategory } from "@/types/game";
 
 export function GamePlayer({
   title,
+  slug,
+  category,
   GameComponent,
 }: {
   title: string;
+  slug: string;
+  category: GameCategory;
   GameComponent: ComponentType;
 }) {
   const [started, setStarted] = useState(false);
@@ -18,13 +23,11 @@ export function GamePlayer({
   }
 
   return (
-    <div className="bg-surface-elevated border-border relative flex aspect-video flex-col items-center justify-center gap-4 overflow-hidden rounded-lg border">
-      <Gamepad2
-        aria-hidden="true"
-        className="text-border-strong size-20"
-        strokeWidth={1}
-      />
-      <Button onClick={() => setStarted(true)}>Play {title}</Button>
+    <div className="border-border relative overflow-hidden rounded-lg border">
+      <GameArtwork slug={slug} category={category} className="aspect-video" />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <Button onClick={() => setStarted(true)}>Play {title}</Button>
+      </div>
     </div>
   );
 }

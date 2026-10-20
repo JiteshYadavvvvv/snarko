@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { GameArtwork } from "@/components/games/game-artwork";
 import { AvailabilityIndicator } from "@/components/shared/availability-indicator";
 import { Badge } from "@/components/ui/badge";
 import { GAME_CATEGORY_META } from "@/constants/game-categories";
@@ -9,17 +10,17 @@ export function GameCard({ game }: { game: Game }) {
   const { label, icon: CategoryIcon } = GAME_CATEGORY_META[game.category];
 
   return (
-    <li className="border-border bg-surface overflow-hidden rounded-md border">
+    <li className="border-border bg-surface overflow-hidden rounded-lg border transition-shadow duration-200 hover:shadow-sm">
       <Link
         href={gameRoute(game.slug)}
         aria-label={`${game.title}, ${label}${game.featured ? ", featured" : ""}`}
         className="group block"
       >
-        <div className="bg-surface-elevated relative flex aspect-4/3 items-center justify-center overflow-hidden">
-          <CategoryIcon
-            aria-hidden="true"
-            className="text-border-strong absolute -right-6 -bottom-6 size-32 transition-transform duration-300 group-hover:scale-110"
-            strokeWidth={1}
+        <div className="relative">
+          <GameArtwork
+            slug={game.slug}
+            category={game.category}
+            className="aspect-4/3 transition-transform duration-300 group-hover:scale-[1.03]"
           />
           {game.featured && (
             <Badge className="absolute top-3 left-3">Featured</Badge>

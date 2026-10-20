@@ -3,7 +3,10 @@ import { expect, test } from "@playwright/test";
 test("homepage renders the hero and the game grid", async ({ page }) => {
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { level: 1, name: "Play now. Argue later." }),
+    page.getByRole("heading", {
+      level: 1,
+      name: "Browser games, no waiting around.",
+    }),
   ).toBeVisible();
   await expect(page.locator("#games li")).toHaveCount(8);
 });

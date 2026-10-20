@@ -22,7 +22,7 @@ function CategoryNavLink({
       className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors duration-150 ${
         isActive
           ? "bg-brand-red text-brand-red-foreground border-brand-red"
-          : "border-border text-foreground hover:bg-surface"
+          : "border-border-strong text-foreground hover:bg-surface-elevated"
       }`}
     >
       {Icon && <Icon className="size-4" aria-hidden="true" />}

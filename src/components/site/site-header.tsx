@@ -21,7 +21,7 @@ export function SiteHeader() {
   return (
     <header className="bg-background/95 border-border sticky top-0 z-40 border-b backdrop-blur-sm">
       <div className="mx-auto flex max-w-6xl items-center gap-6 px-6 py-3">
-        <BrandMark />
+        <BrandMark className="text-foreground" />
         <nav aria-label="Primary" className="hidden md:block">
           <ul className="flex items-center gap-1">
             {NAV_ITEMS.map((item) => (

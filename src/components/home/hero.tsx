@@ -1,21 +1,21 @@
-import { Zap } from "lucide-react";
 import { AnimatedReveal } from "@/components/shared/animated-reveal";
+import { GameArtwork } from "@/components/games/game-artwork";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 export function Hero() {
   return (
-    <section className="mx-auto grid max-w-6xl gap-12 px-6 pt-14 pb-10 lg:grid-cols-2 lg:items-center lg:pt-20 lg:pb-14">
+    <section className="mx-auto grid max-w-6xl gap-10 px-6 pt-10 pb-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-12 lg:pt-14 lg:pb-10">
       <AnimatedReveal>
-        <Badge>In development</Badge>
-        <h1 className="text-foreground mt-6 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-          Play now. Argue later.
+        <Badge>Neon Breaker is live</Badge>
+        <h1 className="text-foreground mt-5 text-4xl font-bold tracking-tight sm:text-5xl lg:text-[3.25rem]">
+          Browser games, no waiting around.
         </h1>
         <p className="text-muted-foreground mt-4 max-w-md text-lg">
-          Snarko is a browser gaming platform taking shape &mdash; fast,
-          free-to-play games with no downloads and no excuses.
+          Pick a game, hit play, done. Snarko is a growing catalogue of fast,
+          free browser games &mdash; no downloads, no accounts.
         </p>
-        <div className="mt-8 flex flex-wrap gap-3">
+        <div className="mt-7 flex flex-wrap gap-3">
           <Button href="/#games">Browse games</Button>
           <Button href="/#categories" variant="secondary">
             View categories
@@ -24,14 +24,27 @@ export function Hero() {
       </AnimatedReveal>
       <div
         aria-hidden="true"
-        className="relative hidden h-72 items-center justify-center lg:flex"
+        className="relative hidden h-64 items-center justify-center lg:flex"
       >
-        <div className="border-border bg-surface absolute h-56 w-56 -rotate-6 rounded-lg border" />
-        <div className="border-border bg-surface-elevated absolute h-48 w-48 rotate-3 rounded-lg border" />
-        <div className="bg-brand-red relative flex h-40 w-40 rotate-6 items-center justify-center rounded-lg">
-          <Zap
-            className="text-brand-red-foreground size-16 -rotate-6"
-            strokeWidth={1.5}
+        <div className="border-border bg-surface absolute h-40 w-32 -translate-x-16 -rotate-6 overflow-hidden rounded-xl border shadow-sm">
+          <GameArtwork
+            slug="hexshift"
+            category="puzzle"
+            className="h-full w-full"
+          />
+        </div>
+        <div className="border-border bg-surface absolute h-40 w-32 translate-x-16 rotate-6 overflow-hidden rounded-xl border shadow-sm">
+          <GameArtwork
+            slug="scrap-circuit"
+            category="racing"
+            className="h-full w-full"
+          />
+        </div>
+        <div className="border-border bg-surface relative z-10 h-48 w-36 overflow-hidden rounded-xl border shadow-md">
+          <GameArtwork
+            slug="neon-breaker"
+            category="arcade"
+            className="h-full w-full"
           />
         </div>
       </div>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { GameArtwork } from "@/components/games/game-artwork";
 import { GamePlayer } from "@/components/games/game-player";
 import { PLAYABLE_GAME_COMPONENTS } from "@/components/games/game-registry";
 import { RelatedGames } from "@/components/games/related-games";
@@ -108,15 +109,20 @@ export default async function GameDetailPage({
 
       {PlayableComponent ? (
         <div className="mt-8">
-          <GamePlayer title={game.title} GameComponent={PlayableComponent} />
+          <GamePlayer
+            title={game.title}
+            slug={game.slug}
+            category={game.category}
+            GameComponent={PlayableComponent}
+          />
         </div>
       ) : (
         <>
-          <div className="bg-surface-elevated border-border relative mt-8 flex aspect-video items-center justify-center overflow-hidden rounded-lg border">
-            <CategoryIcon
-              aria-hidden="true"
-              className="text-border-strong size-40 lg:size-56"
-              strokeWidth={1}
+          <div className="border-border relative mt-8 overflow-hidden rounded-lg border">
+            <GameArtwork
+              slug={game.slug}
+              category={game.category}
+              className="aspect-video"
             />
           </div>
 

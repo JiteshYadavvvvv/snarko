@@ -89,7 +89,7 @@ export default async function CategoryPage({
           ))}
         </ul>
       ) : (
-        <div className="border-border mt-8 flex flex-col items-center gap-3 rounded-md border py-16 text-center">
+        <div className="border-border-strong bg-surface mt-8 flex flex-col items-center gap-3 rounded-lg border border-dashed py-16 text-center">
           <p className="text-foreground font-medium">
             No {meta.label.toLowerCase()} games yet.
           </p>

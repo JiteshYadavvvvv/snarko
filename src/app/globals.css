@@ -2,26 +2,26 @@
 
 :root {
   /* Surfaces */
-  --background: #0b0b0d;
-  --surface: #171719;
-  --surface-elevated: #202024;
+  --background: #f7f7f5;
+  --surface: #ffffff;
+  --surface-elevated: #f0f0ed;
+  --surface-strong: #171719;
+  --surface-strong-elevated: #202024;
 
   /* Text */
-  --foreground: #f4f1ea;
-  --muted-foreground: #a6a6ac;
+  --foreground: #202024;
+  --muted-foreground: #626269;
+  --foreground-on-strong: #f4f1ea;
+  --muted-foreground-on-strong: #a6a6ac;
 
   /* Borders */
-  --border: #2a2a2e;
-  --border-strong: #38383d;
+  --border: #e7e6e1;
+  --border-strong: #71717a;
+  --border-on-strong: #38383d;
 
   /* Brand */
   --brand-red: #e63b42;
-  /*
-   * White text on --brand-red falls just under WCAG AA (≈4.1:1), so chips and
-   * fills built on it pair with --background as the foreground instead
-   * (≈4.8:1) rather than white.
-   */
-  --brand-red-foreground: var(--background);
+  --brand-red-foreground: #140405;
 
   /* Radius */
   --radius-sm: 0.375rem;
@@ -45,10 +45,15 @@
   --color-background: var(--background);
   --color-surface: var(--surface);
   --color-surface-elevated: var(--surface-elevated);
+  --color-surface-strong: var(--surface-strong);
+  --color-surface-strong-elevated: var(--surface-strong-elevated);
   --color-foreground: var(--foreground);
   --color-muted-foreground: var(--muted-foreground);
+  --color-foreground-on-strong: var(--foreground-on-strong);
+  --color-muted-foreground-on-strong: var(--muted-foreground-on-strong);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
+  --color-border-on-strong: var(--border-on-strong);
   --color-brand-red: var(--brand-red);
   --color-brand-red-foreground: var(--brand-red-foreground);
 
@@ -62,7 +67,7 @@
 
 @layer base {
   html {
-    color-scheme: dark;
+    color-scheme: light;
   }
 
   * {
@@ -79,6 +84,17 @@
     outline-offset: 2px;
     border-radius: var(--radius-sm);
   }
+}
+
+.theme-dark {
+  --background: #0b0b0d;
+  --surface: #171719;
+  --surface-elevated: #202024;
+  --foreground: #f4f1ea;
+  --muted-foreground: #a6a6ac;
+  --border: #2a2a2e;
+  --border-strong: #38383d;
+  color-scheme: dark;
 }
 
 @media (prefers-reduced-motion: reduce) {

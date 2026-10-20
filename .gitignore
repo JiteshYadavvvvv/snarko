@@ -48,3 +48,6 @@ next-env.d.ts
 *.md
 !README.md
 *.txt
+
+# local-only agent state
+.claude/

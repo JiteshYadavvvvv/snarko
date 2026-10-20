@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   COLLECTIBLE_PICKUP_RADIUS,
   RUN_START_X,
-  createGarageState,
+  createIdleState,
   pauseRun,
   resumeRun,
   startRun,
@@ -16,16 +16,20 @@ import type {
 } from "@/components/games/ridge-runner/engine/types";
 
 const NO_INPUT: VehicleInput = { gas: false, brake: false };
+const STAGE_ID = "countryside";
+const VEHICLE_ID = "scout-buggy";
 
 function flatTerrain(groundY: number, length = 10000): Terrain {
   return { segmentWidth: 500, heights: [groundY, groundY], length };
 }
 
-describe("createGarageState / startRun", () => {
-  it("creates a garage-status run positioned at the start", () => {
+describe("createIdleState / startRun", () => {
+  it("creates an idle-status run positioned at the start", () => {
     const terrain = flatTerrain(400);
-    const state = createGarageState(terrain);
-    expect(state.status).toBe("garage");
+    const state = createIdleState(terrain, STAGE_ID, VEHICLE_ID);
+    expect(state.status).toBe("idle");
+    expect(state.stageId).toBe(STAGE_ID);
+    expect(state.vehicleId).toBe(VEHICLE_ID);
     expect(state.vehicle.startX).toBe(RUN_START_X);
     expect(state.collectedIds).toEqual([]);
     expect(state.coinsThisRun).toBe(0);
@@ -33,7 +37,7 @@ describe("createGarageState / startRun", () => {
 
   it("startRun begins in playing status", () => {
     const terrain = flatTerrain(400);
-    const state = startRun(terrain);
+    const state = startRun(terrain, STAGE_ID, VEHICLE_ID);
     expect(state.status).toBe("playing");
   });
 });
@@ -41,16 +45,16 @@ describe("createGarageState / startRun", () => {
 describe("pauseRun / resumeRun", () => {
   it("only pauses from playing", () => {
     const terrain = flatTerrain(400);
-    const garage = createGarageState(terrain);
-    expect(pauseRun(garage).status).toBe("garage");
+    const idle = createIdleState(terrain, STAGE_ID, VEHICLE_ID);
+    expect(pauseRun(idle).status).toBe("idle");
 
-    const playing = startRun(terrain);
+    const playing = startRun(terrain, STAGE_ID, VEHICLE_ID);
     expect(pauseRun(playing).status).toBe("paused");
   });
 
   it("only resumes from paused", () => {
     const terrain = flatTerrain(400);
-    const playing = startRun(terrain);
+    const playing = startRun(terrain, STAGE_ID, VEHICLE_ID);
     expect(resumeRun(playing).status).toBe("playing");
 
     const paused = pauseRun(playing);
@@ -61,7 +65,7 @@ describe("pauseRun / resumeRun", () => {
 describe("step", () => {
   it("does nothing when the run is not playing", () => {
     const terrain = flatTerrain(400);
-    const state = createGarageState(terrain);
+    const state = createIdleState(terrain, STAGE_ID, VEHICLE_ID);
     const result = step(
       state,
       BASE_VEHICLE_CONFIG,
@@ -76,7 +80,7 @@ describe("step", () => {
 
   it("collects a coin within pickup radius and updates the run", () => {
     const terrain = flatTerrain(400);
-    const state = startRun(terrain);
+    const state = startRun(terrain, STAGE_ID, VEHICLE_ID);
     const collectible: CollectiblePlacement = {
       id: "coin-1",
       kind: "coin",
@@ -98,9 +102,10 @@ describe("step", () => {
 
   it("refills fuel when a fuel collectible is picked up", () => {
     const terrain = flatTerrain(400);
+    const started = startRun(terrain, STAGE_ID, VEHICLE_ID);
     const state = {
-      ...startRun(terrain),
-      vehicle: { ...startRun(terrain).vehicle, fuel: 50 },
+      ...started,
+      vehicle: { ...started.vehicle, fuel: 50 },
     };
     const collectible: CollectiblePlacement = {
       id: "fuel-1",
@@ -121,7 +126,7 @@ describe("step", () => {
 
   it("does not re-collect an already-collected item", () => {
     const terrain = flatTerrain(400);
-    const started = startRun(terrain);
+    const started = startRun(terrain, STAGE_ID, VEHICLE_ID);
     const state = { ...started, collectedIds: ["coin-1"] };
     const collectible: CollectiblePlacement = {
       id: "coin-1",
@@ -142,7 +147,7 @@ describe("step", () => {
 
   it("ignores a collectible outside the pickup radius", () => {
     const terrain = flatTerrain(400);
-    const state = startRun(terrain);
+    const state = startRun(terrain, STAGE_ID, VEHICLE_ID);
     const collectible: CollectiblePlacement = {
       id: "coin-far",
       kind: "coin",
@@ -162,7 +167,7 @@ describe("step", () => {
 
   it("transitions to crashed when the chassis hits the ground", () => {
     const terrain = flatTerrain(400);
-    const started = startRun(terrain);
+    const started = startRun(terrain, STAGE_ID, VEHICLE_ID);
     const state = {
       ...started,
       vehicle: {
@@ -185,7 +190,7 @@ describe("step", () => {
 
   it("transitions to out-of-fuel when fuel is empty and the vehicle has stopped", () => {
     const terrain = flatTerrain(400);
-    const started = startRun(terrain);
+    const started = startRun(terrain, STAGE_ID, VEHICLE_ID);
     const state = {
       ...started,
       vehicle: {

@@ -18,7 +18,7 @@ test("Ridge Runner is reachable from the homepage and marked playable", async ({
   ).toHaveCount(0);
 });
 
-test("the full play journey: garage, drive, pause, resume, back to garage", async ({
+test("the full play journey: menu, world map, garage, drive, pause, resume, back to garage", async ({
   page,
 }) => {
   await page.goto("/games/ridge-runner");
@@ -27,11 +27,21 @@ test("the full play journey: garage, drive, pause, resume, back to garage", asyn
   await expect(
     page.getByRole("heading", { level: 2, name: "Ridge Runner" }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "Play" }).click();
+
+  await expect(
+    page.getByRole("heading", { level: 2, name: "World Map" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: /^countryside hills/i }).click();
+
+  await expect(
+    page.getByRole("heading", { level: 2, name: "Garage" }),
+  ).toBeVisible();
   await expect(page.getByRole("button", { name: "Drive" })).toBeVisible();
 
   await page.getByRole("button", { name: "Drive" }).click();
   await expect(
-    page.getByRole("heading", { level: 2, name: "Ridge Runner" }),
+    page.getByRole("heading", { level: 2, name: "Garage" }),
   ).toBeHidden();
   await expect(page.getByTestId("ridge-runner-distance")).toHaveText("0m");
   await expect(page.getByTestId("ridge-runner-fuel")).toHaveText("100%");
@@ -62,7 +72,37 @@ test("the full play journey: garage, drive, pause, resume, back to garage", asyn
 
   await page.getByRole("button", { name: "Garage" }).click();
   await expect(
-    page.getByRole("heading", { level: 2, name: "Ridge Runner" }),
+    page.getByRole("heading", { level: 2, name: "Garage" }),
   ).toBeVisible();
   await expect(page.getByRole("button", { name: "Drive" })).toBeVisible();
+});
+
+test("a crash or empty tank shows results with retry, garage, and world map actions", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await page.goto("/games/ridge-runner");
+  await page.getByRole("button", { name: "Play Ridge Runner" }).click();
+  await page.getByRole("button", { name: "Play" }).click();
+  await page.getByRole("button", { name: /^countryside hills/i }).click();
+  await page.getByRole("button", { name: "Drive" }).click();
+
+  const gameSurface = page.getByRole("group", {
+    name: "Ridge Runner game surface",
+  });
+  await gameSurface.focus();
+
+  await page.keyboard.down("ArrowUp");
+  await expect(async () => {
+    const status = await page.evaluate(
+      () =>
+        document.body.innerHTML.includes("Crashed") ||
+        document.body.innerHTML.includes("Out of fuel"),
+    );
+    expect(status).toBe(true);
+  }).toPass({ timeout: 90_000 });
+  await page.keyboard.up("ArrowUp");
+
+  await expect(page.getByRole("button", { name: "Retry stage" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "World Map" })).toBeVisible();
 });

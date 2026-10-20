@@ -85,17 +85,84 @@ export interface UpgradeLevels {
   tires: number;
 }
 
-export interface SaveData {
-  coins: number;
-  bestDistance: number;
+export interface VehicleDefinition {
+  id: string;
+  name: string;
+  description: string;
+  cost: number;
+  baseConfig: VehicleConfig;
+  bodyColor: string;
+  accentColor: string;
+}
+
+export type UnlockRequirement =
+  | { type: "always" }
+  | { type: "stage-distance"; stageId: string; distance: number };
+
+export interface StagePalette {
+  skyTop: string;
+  skyBottom: string;
+  groundFill: string;
+  groundFarFill: string;
+  groundEdge: string;
+}
+
+export interface StageDefinition {
+  id: string;
+  name: string;
+  description: string;
+  terrainConfig: TerrainConfig;
+  unlock: UnlockRequirement;
+  palette: StagePalette;
+}
+
+export interface RunResult {
+  stageId: string;
+  vehicleId: string;
+  distance: number;
+  coinsThisRun: number;
+  crashed: boolean;
+  outOfFuel: boolean;
+}
+
+export interface ObjectiveDefinition {
+  id: string;
+  stageId: string;
+  label: string;
+  reward: number;
+  isComplete: (result: RunResult) => boolean;
+}
+
+export interface AchievementDefinition {
+  id: string;
+  name: string;
+  description: string;
+  isUnlocked: (save: SaveData) => boolean;
+}
+
+export interface VehicleSaveState {
+  unlocked: boolean;
   upgrades: UpgradeLevels;
 }
 
+export interface SaveData {
+  coins: number;
+  selectedVehicleId: string;
+  vehicles: Record<string, VehicleSaveState>;
+  stageBestDistance: Record<string, number>;
+  completedObjectiveIds: string[];
+  unlockedAchievementIds: string[];
+  totalRuns: number;
+  totalCrashes: number;
+}
+
 export type RunStatus =
-  "garage" | "playing" | "paused" | "crashed" | "out-of-fuel";
+  "idle" | "playing" | "paused" | "crashed" | "out-of-fuel";
 
 export interface RunState {
   status: RunStatus;
+  stageId: string;
+  vehicleId: string;
   vehicle: VehicleState;
   collectedIds: string[];
   coinsThisRun: number;

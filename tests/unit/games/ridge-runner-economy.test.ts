@@ -22,7 +22,7 @@ describe("getUpgradeCost", () => {
 
 describe("buildVehicleConfig", () => {
   it("returns the base config at level zero", () => {
-    const config = buildVehicleConfig({
+    const config = buildVehicleConfig(BASE_VEHICLE_CONFIG, {
       engine: 0,
       suspension: 0,
       tires: 0,
@@ -35,7 +35,7 @@ describe("buildVehicleConfig", () => {
   });
 
   it("scales the relevant stat upward with each upgrade level", () => {
-    const upgraded = buildVehicleConfig({
+    const upgraded = buildVehicleConfig(BASE_VEHICLE_CONFIG, {
       engine: 2,
       suspension: 1,
       tires: 3,
@@ -50,7 +50,7 @@ describe("buildVehicleConfig", () => {
   });
 
   it("leaves unrelated dimensions unchanged", () => {
-    const upgraded = buildVehicleConfig({
+    const upgraded = buildVehicleConfig(BASE_VEHICLE_CONFIG, {
       engine: 4,
       suspension: 4,
       tires: 4,

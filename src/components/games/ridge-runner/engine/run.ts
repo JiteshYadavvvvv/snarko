@@ -19,10 +19,16 @@ export const FUEL_REFILL_AMOUNT = 42;
 export const SUBSTEPS = 4;
 export const MAX_FRAME_DELTA = 1 / 20;
 
-export function createGarageState(terrain: Terrain): RunState {
+export function createIdleState(
+  terrain: Terrain,
+  stageId: string,
+  vehicleId: string,
+): RunState {
   const groundY = groundHeightAt(terrain, RUN_START_X);
   return {
-    status: "garage",
+    status: "idle",
+    stageId,
+    vehicleId,
     vehicle: createVehicleState(RUN_START_X, groundY),
     collectedIds: [],
     coinsThisRun: 0,
@@ -30,10 +36,16 @@ export function createGarageState(terrain: Terrain): RunState {
   };
 }
 
-export function startRun(terrain: Terrain): RunState {
+export function startRun(
+  terrain: Terrain,
+  stageId: string,
+  vehicleId: string,
+): RunState {
   const groundY = groundHeightAt(terrain, RUN_START_X);
   return {
     status: "playing",
+    stageId,
+    vehicleId,
     vehicle: createVehicleState(RUN_START_X, groundY),
     collectedIds: [],
     coinsThisRun: 0,

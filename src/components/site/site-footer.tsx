@@ -1,11 +1,8 @@
-import { cacheLife } from "next/cache";
 import Link from "next/link";
 import { BrandMark } from "@/components/site/brand-mark";
 import { NAV_ITEMS } from "@/constants/routes";
 
-export async function SiteFooter() {
-  "use cache";
-  cacheLife("max");
+export function SiteFooter() {
   const year = new Date().getFullYear();
 
   return (

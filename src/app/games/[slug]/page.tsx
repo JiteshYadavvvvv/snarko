@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { GamePlayer } from "@/components/games/game-player";
+import { PLAYABLE_GAME_COMPONENTS } from "@/components/games/game-registry";
 import { RelatedGames } from "@/components/games/related-games";
 import { AvailabilityIndicator } from "@/components/shared/availability-indicator";
 import { Button } from "@/components/ui/button";
@@ -61,6 +63,10 @@ export default async function GameDetailPage({
   const categoryMeta = GAME_CATEGORY_META[game.category];
   const CategoryIcon = categoryMeta.icon;
   const relatedGames = getRelatedSampleGames(game);
+  const PlayableComponent =
+    game.availability === "playable"
+      ? PLAYABLE_GAME_COMPONENTS[game.slug]
+      : undefined;
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-12">
@@ -100,26 +106,30 @@ export default async function GameDetailPage({
         <AvailabilityIndicator availability={game.availability} />
       </div>
 
-      <div className="bg-surface-elevated border-border relative mt-8 flex aspect-video items-center justify-center overflow-hidden rounded-lg border">
-        <CategoryIcon
-          aria-hidden="true"
-          className="text-border-strong size-40 lg:size-56"
-          strokeWidth={1}
-        />
-      </div>
+      {PlayableComponent ? (
+        <div className="mt-8">
+          <GamePlayer title={game.title} GameComponent={PlayableComponent} />
+        </div>
+      ) : (
+        <>
+          <div className="bg-surface-elevated border-border relative mt-8 flex aspect-video items-center justify-center overflow-hidden rounded-lg border">
+            <CategoryIcon
+              aria-hidden="true"
+              className="text-border-strong size-40 lg:size-56"
+              strokeWidth={1}
+            />
+          </div>
 
-      <div className="mt-6 flex flex-wrap items-center gap-4">
-        {game.availability === "playable" ? (
-          <Button href={game.playUrl}>Play {game.title}</Button>
-        ) : (
-          <Button disabled>Not playable yet</Button>
-        )}
-        <p className="text-muted-foreground text-sm">
-          {game.availability === "playable"
-            ? "Opens in a new experience."
-            : "This is a sample catalogue entry — there's no working game behind it yet."}
-        </p>
-      </div>
+          <div className="mt-6 flex flex-wrap items-center gap-4">
+            <Button disabled>Not playable yet</Button>
+            <p className="text-muted-foreground text-sm">
+              {game.availability === "playable"
+                ? "This game can't load right now — try refreshing the page."
+                : "This is a sample catalogue entry — there's no working game behind it yet."}
+            </p>
+          </div>
+        </>
+      )}
 
       <div className="mt-10 max-w-2xl">
         <h2 className="text-foreground text-lg font-semibold">

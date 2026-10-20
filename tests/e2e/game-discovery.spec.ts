@@ -17,12 +17,12 @@ test("an unknown category renders the not-found page", async ({ page }) => {
   await expect(page.getByText("404")).toBeVisible();
 });
 
-test("game detail page shows the game, a disabled play action, and related games", async ({
+test("a coming-soon game detail page shows a disabled play action and related games", async ({
   page,
 }) => {
-  await page.goto("/games/neon-breaker");
+  await page.goto("/games/tunnel-rush");
   await expect(
-    page.getByRole("heading", { level: 1, name: "Neon Breaker" }),
+    page.getByRole("heading", { level: 1, name: "Tunnel Rush" }),
   ).toBeVisible();
   await expect(page.getByText("Coming soon").first()).toBeVisible();
   await expect(

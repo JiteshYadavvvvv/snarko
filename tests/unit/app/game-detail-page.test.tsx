@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import GameDetailPage, { generateMetadata } from "@/app/games/[slug]/page";
 
 describe("GameDetailPage", () => {
-  it("renders the title, description, and a disabled coming-soon action for a real slug", async () => {
+  it("renders a playable game's embedded Play trigger instead of a disabled action", async () => {
     const jsx = await GameDetailPage({
       params: Promise.resolve({ slug: "neon-breaker" }),
     });
@@ -12,7 +12,24 @@ describe("GameDetailPage", () => {
     expect(
       screen.getByRole("heading", { level: 1, name: "Neon Breaker" }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/chain breaks together/i)).toBeVisible();
+    expect(screen.getByText(/classic paddle-and-block/i)).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Play Neon Breaker" }),
+    ).toBeEnabled();
+    expect(
+      screen.queryByRole("button", { name: "Not playable yet" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("renders a disabled coming-soon action for an unplayable game", async () => {
+    const jsx = await GameDetailPage({
+      params: Promise.resolve({ slug: "tunnel-rush" }),
+    });
+    render(jsx);
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Tunnel Rush" }),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Not playable yet" }),
     ).toBeDisabled();

@@ -1,4 +1,5 @@
 import type { Game, GameCategory } from "@/types/game";
+import { gameRoute } from "@/constants/routes";
 
 export const SAMPLE_GAMES: Game[] = [
   {
@@ -6,10 +7,11 @@ export const SAMPLE_GAMES: Game[] = [
     title: "Neon Breaker",
     category: "arcade",
     description:
-      "Smash through glowing blocks in fast, one-more-try arcade bursts.",
+      "Keep the ball in play, break every block, and clear all five levels before you run out of lives.",
     longDescription:
-      "Neon Breaker drops you into a grid of glowing blocks with a paddle that never quite behaves. Chain breaks together, chase power-ups, and keep the run alive as the board speeds up around you.",
-    availability: "coming-soon",
+      "Neon Breaker is a classic paddle-and-block arcade game: move the paddle to keep the ball alive, clear every block on the board, and climb through five progressively faster levels with three lives to spare.",
+    availability: "playable",
+    playUrl: gameRoute("neon-breaker"),
     featured: true,
     inputs: ["keyboard", "mouse", "touch"],
   },

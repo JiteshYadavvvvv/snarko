@@ -1,13 +1,14 @@
 # Snarko
 
-A premium browser gaming platform. **Phases 0–2** are implemented: project
+A premium browser gaming platform. **Phases 0–3** are implemented: project
 tooling, design tokens, SEO plumbing, testing/CI, a header/footer shell, a
-homepage, and dedicated, indexable routes for every sample game
-(`/games/[slug]`) and category (`/games/category/[category]`), with search,
-category navigation, and related-game recommendations all wired to the same
-typed catalogue. There is no real game catalogue, no actual gameplay, and
-nothing is marked playable yet — see [`docs/PHASES.md`](./docs/PHASES.md)
-for what's deferred and why.
+homepage, dedicated indexable routes for every sample game (`/games/[slug]`)
+and category (`/games/category/[category]`) with search and related-game
+recommendations, and one genuinely playable game — **Neon Breaker**, a
+paddle-and-block arcade game at `/games/neon-breaker` with real collision
+physics, scoring, lives, five levels, and keyboard/mouse/touch input. Every
+other catalogue entry is still a `coming-soon` sample — see
+[`docs/PHASES.md`](./docs/PHASES.md) for what's deferred and why.
 
 ## Stack
 
@@ -73,8 +74,8 @@ this README and `docs/SEO.md` document the one variable that exists.
 - [`docs/SEO.md`](./docs/SEO.md) — metadata, canonical URLs, sitemap, robots
 - [`docs/ANIMATIONS.md`](./docs/ANIMATIONS.md) — Motion and CSS animation
   rules, reduced-motion handling
-- [`docs/GAME_DELIVERY.md`](./docs/GAME_DELIVERY.md) — future game
-  integration and asset-delivery constraints
+- [`docs/GAME_DELIVERY.md`](./docs/GAME_DELIVERY.md) — how Neon Breaker is
+  built, and what's required before adding another game
 - [`docs/PHASES.md`](./docs/PHASES.md) — roadmap and what's deferred
 
 ## Deployment

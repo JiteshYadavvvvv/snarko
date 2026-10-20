@@ -46,4 +46,5 @@ next-env.d.ts
 
 # docs and notes (kept locally, not tracked in git)
 *.md
+!README.md
 *.txt

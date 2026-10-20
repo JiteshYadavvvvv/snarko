@@ -1,3 +1,4 @@
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 export default function NotFound() {
@@ -9,8 +10,9 @@ export default function NotFound() {
       </p>
       <Link
         href="/"
-        className="border-border-strong text-foreground hover:bg-surface mt-8 rounded-md border px-4 py-2 text-sm font-medium transition-colors duration-150"
+        className="border-border-strong text-foreground hover:bg-surface mt-8 inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium transition-colors duration-150"
       >
+        <ArrowLeft className="size-4" aria-hidden="true" />
         Back home
       </Link>
     </main>

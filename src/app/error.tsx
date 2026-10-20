@@ -1,5 +1,6 @@
 "use client";
 
+import { RotateCcw } from "lucide-react";
 import { useEffect } from "react";
 
 export default function Error({
@@ -24,8 +25,9 @@ export default function Error({
       <button
         type="button"
         onClick={reset}
-        className="bg-brand-red text-brand-red-foreground mt-8 rounded-md px-4 py-2 text-sm font-bold transition-colors duration-150 hover:opacity-90"
+        className="bg-brand-red text-brand-red-foreground mt-8 inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-bold transition-colors duration-150 hover:opacity-90"
       >
+        <RotateCcw className="size-4" aria-hidden="true" />
         Try again
       </button>
     </main>

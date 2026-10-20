@@ -16,6 +16,19 @@ export const SAMPLE_GAMES: Game[] = [
     inputs: ["keyboard", "mouse", "touch"],
   },
   {
+    slug: "ridge-runner",
+    title: "Ridge Runner",
+    category: "racing",
+    description:
+      "A physics hill-driving run: gas up the climbs, brake on the way down, and don't let the chassis touch the dirt.",
+    longDescription:
+      "Ridge Runner is a physics-based hill-driving game: manage gas and brake to keep momentum through rolling countryside terrain, collect fuel and coins along the way, and spend what you earn in the garage on a better engine, suspension, and tires. One crash or an empty tank ends the run — your best distance and coins carry over to the next one.",
+    availability: "playable",
+    playUrl: gameRoute("ridge-runner"),
+    featured: true,
+    inputs: ["keyboard", "touch"],
+  },
+  {
     slug: "tunnel-rush",
     title: "Tunnel Rush",
     category: "arcade",
@@ -56,7 +69,6 @@ export const SAMPLE_GAMES: Game[] = [
     longDescription:
       "Scrap Circuit puts scrappy, cobbled-together go-karts on tight, technical circuits. The drift mechanic is the whole game — carry it clean through one corner and the next one opens up.",
     availability: "coming-soon",
-    featured: true,
     inputs: ["keyboard", "gamepad"],
   },
   {

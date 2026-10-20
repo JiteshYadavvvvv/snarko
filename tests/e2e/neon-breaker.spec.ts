@@ -4,12 +4,15 @@ test("Neon Breaker is reachable from the homepage and marked playable", async ({
   page,
 }) => {
   await page.goto("/");
-  await page.getByRole("link", { name: /neon breaker/i }).click();
+  await page
+    .locator("#games")
+    .getByRole("link", { name: /neon breaker/i })
+    .click();
   await expect(page).toHaveURL("/games/neon-breaker");
   await expect(
     page.getByRole("heading", { level: 1, name: "Neon Breaker" }),
   ).toBeVisible();
-  await expect(page.getByText("Playable now")).toBeVisible();
+  await expect(page.getByText("Playable now").first()).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Not playable yet" }),
   ).toHaveCount(0);

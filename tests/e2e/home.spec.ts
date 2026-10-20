@@ -8,7 +8,7 @@ test("homepage renders the hero and the game grid", async ({ page }) => {
       name: "Browser games, no waiting around.",
     }),
   ).toBeVisible();
-  await expect(page.locator("#games li")).toHaveCount(8);
+  await expect(page.locator("#games li")).toHaveCount(9);
 });
 
 test("search filters the grid and shows an empty state with no matches", async ({
@@ -24,7 +24,7 @@ test("search filters the grid and shows an empty state with no matches", async (
   await expect(page.getByText("No games match your search.")).toBeVisible();
 
   await page.getByRole("button", { name: "Reset search" }).click();
-  await expect(page.locator("#games li")).toHaveCount(8);
+  await expect(page.locator("#games li")).toHaveCount(9);
 });
 
 test("category navigation links point at real category routes", async ({
@@ -39,7 +39,7 @@ test("category navigation links point at real category routes", async ({
 test("a game card links to its detail route", async ({ page }) => {
   await page.goto("/");
   await expect(
-    page.getByRole("link", { name: /neon breaker/i }),
+    page.locator("#games").getByRole("link", { name: /neon breaker/i }),
   ).toHaveAttribute("href", "/games/neon-breaker");
 });
 

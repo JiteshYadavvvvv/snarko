@@ -29,6 +29,29 @@ function NeonBreakerArt(props: ArtProps) {
   );
 }
 
+function RidgeRunnerArt(props: ArtProps) {
+  return (
+    <svg viewBox="0 0 160 100" {...props}>
+      <path
+        d="M0 78 Q 28 48 56 70 T 110 62 T 160 72 V100 H0 Z"
+        fill="#71717A"
+        opacity={0.3}
+      />
+      <path
+        d="M0 86 Q 34 58 70 80 T 160 80 V100 H0 Z"
+        fill="#71717A"
+        opacity={0.55}
+      />
+      <g transform="translate(92 60)">
+        <rect x={-18} y={-10} width={34} height={14} rx={5} fill="#E63B42" />
+        <rect x={-10} y={-18} width={18} height={10} rx={3} fill="#140405" />
+        <circle cx={-10} cy={6} r={6} fill="#202024" />
+        <circle cx={10} cy={6} r={6} fill="#202024" />
+      </g>
+    </svg>
+  );
+}
+
 function TunnelRushArt(props: ArtProps) {
   const sizes = [84, 64, 46, 30, 16];
   return (
@@ -208,6 +231,7 @@ function PaperStackerArt(props: ArtProps) {
 
 const ART_BY_SLUG: Record<string, ComponentType<ArtProps>> = {
   "neon-breaker": NeonBreakerArt,
+  "ridge-runner": RidgeRunnerArt,
   "tunnel-rush": TunnelRushArt,
   gridlock: GridlockArt,
   hexshift: HexshiftArt,

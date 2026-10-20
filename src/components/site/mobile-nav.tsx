@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { SearchBar } from "@/components/ui/search-bar";
 import { useGameDiscovery } from "@/components/home/game-discovery-context";
 import { NAV_ITEMS } from "@/constants/routes";
@@ -13,6 +15,7 @@ interface MobileNavProps {
 
 export function MobileNav({ id, open, onClose }: MobileNavProps) {
   const { query, setQuery } = useGameDiscovery();
+  const router = useRouter();
 
   useEffect(() => {
     if (!open) return;
@@ -37,6 +40,10 @@ export function MobileNav({ id, open, onClose }: MobileNavProps) {
       <SearchBar
         value={query}
         onChange={setQuery}
+        onSubmit={() => {
+          router.push("/");
+          onClose();
+        }}
         label="Search games"
         className="mb-4"
       />
@@ -44,13 +51,13 @@ export function MobileNav({ id, open, onClose }: MobileNavProps) {
         <ul className="flex flex-col gap-1">
           {NAV_ITEMS.map((item) => (
             <li key={item.href}>
-              <a
+              <Link
                 href={item.href}
                 onClick={onClose}
                 className="text-foreground hover:bg-surface block rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150"
               >
                 {item.label}
-              </a>
+              </Link>
             </li>
           ))}
         </ul>

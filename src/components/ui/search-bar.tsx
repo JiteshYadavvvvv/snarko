@@ -5,6 +5,7 @@ import { Search, X } from "lucide-react";
 interface SearchBarProps {
   value: string;
   onChange: (value: string) => void;
+  onSubmit?: () => void;
   label: string;
   placeholder?: string;
   className?: string;
@@ -13,12 +14,20 @@ interface SearchBarProps {
 export function SearchBar({
   value,
   onChange,
+  onSubmit,
   label,
   placeholder = "Search games",
   className = "",
 }: SearchBarProps) {
   return (
-    <div className={`relative flex items-center ${className}`.trim()}>
+    <form
+      role="search"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSubmit?.();
+      }}
+      className={`relative flex items-center ${className}`.trim()}
+    >
       <Search
         className="text-muted-foreground pointer-events-none absolute left-3 size-4"
         aria-hidden="true"
@@ -41,6 +50,6 @@ export function SearchBar({
           <X className="size-4" aria-hidden="true" />
         </button>
       )}
-    </div>
+    </form>
   );
 }

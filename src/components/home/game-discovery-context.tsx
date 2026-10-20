@@ -7,15 +7,12 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { filterSampleGames, getSampleGameCategories } from "@/lib/sample-games";
-import type { Game, GameCategory } from "@/types/game";
+import { filterSampleGames } from "@/lib/sample-games";
+import type { Game } from "@/types/game";
 
 interface GameDiscoveryValue {
   query: string;
   setQuery: (query: string) => void;
-  category: GameCategory | "all";
-  setCategory: (category: GameCategory | "all") => void;
-  categories: GameCategory[];
   games: Game[];
   filteredGames: Game[];
 }
@@ -30,19 +27,14 @@ export function GameDiscoveryProvider({
   children: ReactNode;
 }) {
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState<GameCategory | "all">("all");
-  const categories = useMemo(() => getSampleGameCategories(), []);
   const filteredGames = useMemo(
-    () => filterSampleGames(games, { query, category }),
-    [games, query, category],
+    () => filterSampleGames(games, { query }),
+    [games, query],
   );
 
   const value: GameDiscoveryValue = {
     query,
     setQuery,
-    category,
-    setCategory,
-    categories,
     games,
     filteredGames,
   };

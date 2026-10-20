@@ -1,4 +1,5 @@
 import { cacheLife } from "next/cache";
+import Link from "next/link";
 import { BrandMark } from "@/components/site/brand-mark";
 import { NAV_ITEMS } from "@/constants/routes";
 
@@ -21,12 +22,12 @@ export async function SiteFooter() {
           <ul className="flex items-center gap-4">
             {NAV_ITEMS.map((item) => (
               <li key={item.href}>
-                <a
+                <Link
                   href={item.href}
                   className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors duration-150"
                 >
                   {item.label}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>

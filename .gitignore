@@ -52,4 +52,4 @@ next-env.d.ts
 # local-only agent state
 .claude/
 
-.tests
+.tests/

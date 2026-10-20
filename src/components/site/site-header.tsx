@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { BrandMark } from "@/components/site/brand-mark";
 import { MobileNav } from "@/components/site/mobile-nav";
@@ -14,6 +16,7 @@ const MOBILE_NAV_ID = "mobile-nav";
 export function SiteHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { query, setQuery } = useGameDiscovery();
+  const router = useRouter();
 
   return (
     <header className="bg-background/95 border-border sticky top-0 z-40 border-b backdrop-blur-sm">
@@ -23,12 +26,12 @@ export function SiteHeader() {
           <ul className="flex items-center gap-1">
             {NAV_ITEMS.map((item) => (
               <li key={item.href}>
-                <a
+                <Link
                   href={item.href}
                   className="text-foreground hover:bg-surface block rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150"
                 >
                   {item.label}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
@@ -36,6 +39,7 @@ export function SiteHeader() {
         <SearchBar
           value={query}
           onChange={setQuery}
+          onSubmit={() => router.push("/")}
           label="Search games"
           className="ml-auto hidden max-w-xs md:flex"
         />

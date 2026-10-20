@@ -1,43 +1,13 @@
 "use client";
 
-import type { LucideIcon } from "lucide-react";
 import { GameCard } from "@/components/home/game-card";
 import { useGameDiscovery } from "@/components/home/game-discovery-context";
+import { CategoryNav } from "@/components/shared/category-nav";
 import { Button } from "@/components/ui/button";
-import { GAME_CATEGORY_META } from "@/constants/game-categories";
-import type { GameCategory } from "@/types/game";
-
-function CategoryPill({
-  label,
-  icon: Icon,
-  active,
-  onClick,
-}: {
-  label: string;
-  icon?: LucideIcon;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors duration-150 ${
-        active
-          ? "bg-brand-red text-brand-red-foreground border-brand-red"
-          : "border-border text-foreground hover:bg-surface"
-      }`}
-    >
-      {Icon && <Icon className="size-4" aria-hidden="true" />}
-      {label}
-    </button>
-  );
-}
+import { GAME_CATEGORIES } from "@/constants/game-categories";
 
 export function GameDiscoverySection() {
-  const { category, setCategory, categories, filteredGames, setQuery } =
-    useGameDiscovery();
+  const { filteredGames, setQuery } = useGameDiscovery();
 
   return (
     <section
@@ -51,24 +21,12 @@ export function GameDiscoverySection() {
         A small, curated set of sample games while the catalogue takes shape.
       </p>
 
-      <div id="categories" className="mt-8 flex scroll-mt-20 flex-wrap gap-2">
-        <CategoryPill
-          label="All"
-          active={category === "all"}
-          onClick={() => setCategory("all")}
+      <div id="categories" className="scroll-mt-20">
+        <CategoryNav
+          categories={GAME_CATEGORIES}
+          active="all"
+          className="mt-8"
         />
-        {categories.map((cat: GameCategory) => {
-          const meta = GAME_CATEGORY_META[cat];
-          return (
-            <CategoryPill
-              key={cat}
-              label={meta.label}
-              icon={meta.icon}
-              active={category === cat}
-              onClick={() => setCategory(cat)}
-            />
-          );
-        })}
       </div>
 
       <p className="sr-only" aria-live="polite">
@@ -87,16 +45,10 @@ export function GameDiscoverySection() {
             No games match your search.
           </p>
           <p className="text-muted-foreground text-sm">
-            Try a different category or clear your search.
+            Try a different search term, or browse by category above.
           </p>
-          <Button
-            variant="secondary"
-            onClick={() => {
-              setQuery("");
-              setCategory("all");
-            }}
-          >
-            Reset filters
+          <Button variant="secondary" onClick={() => setQuery("")}>
+            Reset search
           </Button>
         </div>
       )}

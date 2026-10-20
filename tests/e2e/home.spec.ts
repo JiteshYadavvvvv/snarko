@@ -8,16 +8,6 @@ test("homepage renders the hero and the game grid", async ({ page }) => {
   await expect(page.locator("#games li")).toHaveCount(8);
 });
 
-test("category filter narrows the game grid", async ({ page }) => {
-  await page.goto("/");
-  await page.getByRole("button", { name: "Racing", exact: true }).click();
-  await expect(page.locator("#games li")).toHaveCount(1);
-  await expect(page.getByText("Scrap Circuit")).toBeVisible();
-
-  await page.getByRole("button", { name: "All", exact: true }).click();
-  await expect(page.locator("#games li")).toHaveCount(8);
-});
-
 test("search filters the grid and shows an empty state with no matches", async ({
   page,
 }) => {
@@ -30,19 +20,24 @@ test("search filters the grid and shows an empty state with no matches", async (
   await search.fill("this-will-never-match-anything");
   await expect(page.getByText("No games match your search.")).toBeVisible();
 
-  await page.getByRole("button", { name: "Reset filters" }).click();
+  await page.getByRole("button", { name: "Reset search" }).click();
   await expect(page.locator("#games li")).toHaveCount(8);
 });
 
-test("a game card expands to reveal its description", async ({ page }) => {
+test("category navigation links point at real category routes", async ({
+  page,
+}) => {
   await page.goto("/");
-  const toggle = page.getByRole("button", { name: /neon breaker/i });
-  const description = page.getByText("Smash through glowing blocks");
+  await expect(
+    page.getByRole("link", { name: "Racing", exact: true }),
+  ).toHaveAttribute("href", "/games/category/racing");
+});
 
-  await expect(description).toBeHidden();
-  await toggle.click();
-  await expect(description).toBeVisible();
-  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+test("a game card links to its detail route", async ({ page }) => {
+  await page.goto("/");
+  await expect(
+    page.getByRole("link", { name: /neon breaker/i }),
+  ).toHaveAttribute("href", "/games/neon-breaker");
 });
 
 test("mobile menu opens, exposes navigation, and closes with Escape", async ({

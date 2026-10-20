@@ -1,11 +1,13 @@
 # Snarko
 
-A premium browser gaming platform. **Phase 0 (foundation)** and **Phase 1
-(design system + homepage)** are implemented: project tooling, design tokens,
-SEO plumbing, testing/CI, a header/footer shell, and a homepage with a local,
-sample-data-driven game grid (search + category filtering). There is no real
-game catalogue, per-game pages, or any gameplay yet — see
-[`docs/PHASES.md`](./docs/PHASES.md) for what's deferred and why.
+A premium browser gaming platform. **Phases 0–2** are implemented: project
+tooling, design tokens, SEO plumbing, testing/CI, a header/footer shell, a
+homepage, and dedicated, indexable routes for every sample game
+(`/games/[slug]`) and category (`/games/category/[category]`), with search,
+category navigation, and related-game recommendations all wired to the same
+typed catalogue. There is no real game catalogue, no actual gameplay, and
+nothing is marked playable yet — see [`docs/PHASES.md`](./docs/PHASES.md)
+for what's deferred and why.
 
 ## Stack
 
@@ -29,9 +31,11 @@ game catalogue, per-game pages, or any gameplay yet — see
 ```bash
 nvm use                      # or install the Node version in .nvmrc manually
 npm install
-cp .env.example .env         # optional locally; see docs/SEO.md
 npm run dev
 ```
+
+A working `.env` is already present for local development; it's gitignored,
+not committed. See [Environment](#environment) below.
 
 Open [http://localhost:3000](http://localhost:3000).
 
@@ -52,11 +56,13 @@ npm run format:check    # Prettier, check only
 
 ## Environment
 
-See [`.env.example`](./.env.example). `NEXT_PUBLIC_SITE_URL` controls the
-canonical origin used in metadata, `robots.txt`, and `sitemap.xml` — required
-before a real production deploy, optional in local development (falls back
-to `http://localhost:3000`). Details in
-[`docs/SEO.md`](./docs/SEO.md#canonical-production-origin).
+`NEXT_PUBLIC_SITE_URL` controls the canonical origin used in metadata,
+`robots.txt`, and `sitemap.xml` — required before a real production deploy,
+optional in local development (falls back to `http://localhost:3000` if
+unset). Details in
+[`docs/SEO.md`](./docs/SEO.md#canonical-production-origin). `.env` holds the
+local value and is gitignored; there is no `.env.example` template file —
+this README and `docs/SEO.md` document the one variable that exists.
 
 ## Documentation
 
@@ -73,7 +79,9 @@ to `http://localhost:3000`). Details in
 
 ## Deployment
 
-Not configured in Phase 0. No deploy has been performed and no external
-resources have been created. See
+No deploy has been performed and no external resources have been created.
+`vercel.json` pins the framework to `nextjs` so a Vercel project with a
+misconfigured Framework Preset still builds and serves this app correctly;
+it sets nothing else (no output directory override). See
 [`docs/SEO.md`](./docs/SEO.md#what-must-wait) for what has to be set before a
 real deploy (primarily `NEXT_PUBLIC_SITE_URL`).

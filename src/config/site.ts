@@ -1,7 +1,7 @@
 import type { SiteConfig } from "@/types/site";
 
 // Placeholder until the real production domain is live. Overridden by
-// NEXT_PUBLIC_SITE_URL in any environment where it is set (see .env.example).
+// NEXT_PUBLIC_SITE_URL in any environment where it is set (see .env).
 const FALLBACK_PRODUCTION_URL = "https://snarko.example";
 
 function resolveSiteUrl(): string {

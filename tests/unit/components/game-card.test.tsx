@@ -1,5 +1,4 @@
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { GameCard } from "@/components/home/game-card";
 import type { Game } from "@/types/game";
@@ -9,35 +8,51 @@ const game: Game = {
   title: "Neon Breaker",
   category: "arcade",
   description: "Smash through glowing blocks.",
+  availability: "coming-soon",
   featured: true,
 };
 
 describe("GameCard", () => {
-  it("hides the description until expanded", () => {
-    render(<GameCard game={game} />);
-    expect(screen.getByText(game.description)).not.toBeVisible();
-  });
-
-  it("reveals the description when activated and hides it again on a second activation", async () => {
-    const user = userEvent.setup();
-    render(<GameCard game={game} />);
-
-    const toggle = screen.getByRole("button");
-    expect(toggle).toHaveAttribute("aria-expanded", "false");
-
-    await user.click(toggle);
-    expect(toggle).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByText(game.description)).toBeVisible();
-
-    await user.click(toggle);
-    expect(toggle).toHaveAttribute("aria-expanded", "false");
-    expect(screen.getByText(game.description)).not.toBeVisible();
+  it("links to the game's detail route", () => {
+    render(
+      <ul>
+        <GameCard game={game} />
+      </ul>,
+    );
+    expect(screen.getByRole("link")).toHaveAttribute(
+      "href",
+      "/games/neon-breaker",
+    );
   });
 
   it("surfaces the featured status in its accessible name", () => {
-    render(<GameCard game={game} />);
+    render(
+      <ul>
+        <GameCard game={game} />
+      </ul>,
+    );
     expect(
-      screen.getByRole("button", { name: /neon breaker.*featured/i }),
+      screen.getByRole("link", { name: /neon breaker.*featured/i }),
     ).toBeInTheDocument();
+  });
+
+  it("shows the coming-soon availability state", () => {
+    render(
+      <ul>
+        <GameCard game={game} />
+      </ul>,
+    );
+    expect(screen.getByText("Coming soon")).toBeInTheDocument();
+  });
+
+  it("shows the playable availability state", () => {
+    render(
+      <ul>
+        <GameCard
+          game={{ ...game, availability: "playable", playUrl: "/play" }}
+        />
+      </ul>,
+    );
+    expect(screen.getByText("Playable now")).toBeInTheDocument();
   });
 });

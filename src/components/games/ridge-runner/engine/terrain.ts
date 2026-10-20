@@ -16,7 +16,7 @@ export const DEFAULT_TERRAIN_CONFIG: TerrainConfig = {
   maxHeight: 470,
 };
 
-function createRng(seed: number): () => number {
+export function createRng(seed: number): () => number {
   let state = seed | 0;
   return function next() {
     state |= 0;

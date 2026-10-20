@@ -26,6 +26,8 @@ export const STAGES: StageDefinition[] = [
       groundFill: "#3f7d4a",
       groundFarFill: "#86b98d",
       groundEdge: "#2f5f38",
+      mountainFill: "#8fb0a8",
+      mountainFarFill: "#bcd6d8",
     },
   },
   {
@@ -51,6 +53,8 @@ export const STAGES: StageDefinition[] = [
       groundFill: "#7d5a3f",
       groundFarFill: "#b99169",
       groundEdge: "#5f3f2f",
+      mountainFill: "#6b4a6f",
+      mountainFarFill: "#8a6a94",
     },
   },
   {
@@ -76,6 +80,8 @@ export const STAGES: StageDefinition[] = [
       groundFill: "#7d94a0",
       groundFarFill: "#b8c9d1",
       groundEdge: "#5f7580",
+      mountainFill: "#9fb8c4",
+      mountainFarFill: "#c9dce3",
     },
   },
 ];

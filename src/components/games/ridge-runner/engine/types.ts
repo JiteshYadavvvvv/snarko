@@ -105,6 +105,8 @@ export interface StagePalette {
   groundFill: string;
   groundFarFill: string;
   groundEdge: string;
+  mountainFill: string;
+  mountainFarFill: string;
 }
 
 export interface StageDefinition {

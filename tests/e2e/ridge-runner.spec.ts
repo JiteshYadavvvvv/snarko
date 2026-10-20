@@ -77,7 +77,7 @@ test("the full play journey: menu, world map, garage, drive, pause, resume, back
   await expect(page.getByRole("button", { name: "Drive" })).toBeVisible();
 });
 
-test("a crash or empty tank shows results with retry, garage, and world map actions", async ({
+test("a crash, empty tank, or finish shows results with retry, garage, and world map actions", async ({
   page,
 }) => {
   test.setTimeout(120_000);
@@ -97,7 +97,8 @@ test("a crash or empty tank shows results with retry, garage, and world map acti
     const status = await page.evaluate(
       () =>
         document.body.innerHTML.includes("Crashed") ||
-        document.body.innerHTML.includes("Out of fuel"),
+        document.body.innerHTML.includes("Out of fuel") ||
+        document.body.innerHTML.includes("Victory"),
     );
     expect(status).toBe(true);
   }).toPass({ timeout: 90_000 });
@@ -105,4 +106,29 @@ test("a crash or empty tank shows results with retry, garage, and world map acti
 
   await expect(page.getByRole("button", { name: "Retry stage" })).toBeVisible();
   await expect(page.getByRole("button", { name: "World Map" })).toBeVisible();
+});
+
+test("reaching the finish line shows Victory, awards a completion bonus, and unlocks the next stage", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await page.goto("/games/ridge-runner");
+  await page.getByRole("button", { name: "Play Ridge Runner" }).click();
+  await page.getByRole("button", { name: "Play" }).click();
+  await page.getByRole("button", { name: /^countryside hills/i }).click();
+  await page.getByRole("button", { name: "Drive" }).click();
+
+  const gameSurface = page.getByRole("group", {
+    name: "Ridge Runner game surface",
+  });
+  await gameSurface.focus();
+
+  await page.keyboard.down("ArrowUp");
+  await expect(
+    page.getByRole("heading", { level: 2, name: "Victory!" }),
+  ).toBeVisible({ timeout: 90_000 });
+  await page.keyboard.up("ArrowUp");
+
+  await expect(page.getByText(/stage complete! \+\d+ bonus coins/i)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Next Stage" })).toBeVisible();
 });

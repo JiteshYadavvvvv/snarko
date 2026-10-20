@@ -116,6 +116,8 @@ export interface StageDefinition {
   terrainConfig: TerrainConfig;
   unlock: UnlockRequirement;
   palette: StagePalette;
+  finishDistance: number;
+  completionReward: number;
 }
 
 export interface RunResult {
@@ -125,6 +127,7 @@ export interface RunResult {
   coinsThisRun: number;
   crashed: boolean;
   outOfFuel: boolean;
+  finished: boolean;
 }
 
 export interface ObjectiveDefinition {
@@ -154,12 +157,18 @@ export interface SaveData {
   stageBestDistance: Record<string, number>;
   completedObjectiveIds: string[];
   unlockedAchievementIds: string[];
+  completedStageIds: string[];
   totalRuns: number;
   totalCrashes: number;
 }
 
 export type RunStatus =
-  "idle" | "playing" | "paused" | "crashed" | "out-of-fuel";
+  | "idle"
+  | "playing"
+  | "paused"
+  | "crashed"
+  | "out-of-fuel"
+  | "finished";
 
 export interface RunState {
   status: RunStatus;
@@ -177,7 +186,8 @@ export type RunEvent =
   | { type: "airborne" }
   | { type: "landed" }
   | { type: "crashed" }
-  | { type: "out-of-fuel" };
+  | { type: "out-of-fuel" }
+  | { type: "finished" };
 
 export interface RunStepResult {
   state: RunState;

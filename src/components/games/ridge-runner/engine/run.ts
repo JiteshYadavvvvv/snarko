@@ -83,6 +83,7 @@ export function step(
   collectibles: CollectiblePlacement[],
   input: VehicleInput,
   dtSeconds: number,
+  finishDistance: number,
 ): RunStepResult {
   if (state.status !== "playing") {
     return { state, events: [] };
@@ -157,6 +158,21 @@ export function step(
     vehicleWithFuel.velocity.x,
     vehicleWithFuel.velocity.y,
   );
+
+  if (vehicleWithFuel.distanceTraveled >= finishDistance) {
+    events.push({ type: "finished" });
+    return {
+      state: {
+        ...state,
+        status: "finished",
+        vehicle: vehicleWithFuel,
+        collectedIds,
+        coinsThisRun,
+        distance: vehicleWithFuel.distanceTraveled,
+      },
+      events,
+    };
+  }
 
   if (vehicleWithFuel.fuel <= 0 && speed < 8) {
     events.push({ type: "out-of-fuel" });

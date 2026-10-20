@@ -4,6 +4,7 @@ import {
   getUpgradeCost,
 } from "@/components/games/ridge-runner/engine/economy";
 import { OBJECTIVES } from "@/components/games/ridge-runner/engine/objectives";
+import { getStageDefinition } from "@/components/games/ridge-runner/engine/stages";
 import {
   DEFAULT_VEHICLE_ID,
   VEHICLES,
@@ -36,6 +37,7 @@ export function createDefaultSave(): SaveData {
     stageBestDistance: {},
     completedObjectiveIds: [],
     unlockedAchievementIds: [],
+    completedStageIds: [],
     totalRuns: 0,
     totalCrashes: 0,
   };
@@ -70,6 +72,9 @@ export function loadSave(): SaveData {
       unlockedAchievementIds: Array.isArray(parsed.unlockedAchievementIds)
         ? parsed.unlockedAchievementIds
         : fallback.unlockedAchievementIds,
+      completedStageIds: Array.isArray(parsed.completedStageIds)
+        ? parsed.completedStageIds
+        : fallback.completedStageIds,
       totalRuns:
         typeof parsed.totalRuns === "number"
           ? parsed.totalRuns
@@ -100,6 +105,8 @@ export interface ApplyRunResultOutcome {
   save: SaveData;
   newObjectiveIds: string[];
   newAchievementIds: string[];
+  newlyCompletedStage: boolean;
+  completionReward: number;
 }
 
 export function applyRunResult(
@@ -127,6 +134,16 @@ export function applyRunResult(
     }
   }
 
+  const completedStageIds = [...save.completedStageIds];
+  let newlyCompletedStage = false;
+  let completionReward = 0;
+  if (result.finished && !completedStageIds.includes(result.stageId)) {
+    completedStageIds.push(result.stageId);
+    newlyCompletedStage = true;
+    completionReward = getStageDefinition(result.stageId).completionReward;
+    coins += completionReward;
+  }
+
   const updated: SaveData = {
     ...save,
     coins,
@@ -135,6 +152,7 @@ export function applyRunResult(
       [result.stageId]: nextBest,
     },
     completedObjectiveIds,
+    completedStageIds,
     totalRuns: save.totalRuns + 1,
     totalCrashes: save.totalCrashes + (result.crashed ? 1 : 0),
   };
@@ -156,6 +174,8 @@ export function applyRunResult(
     save: { ...updated, unlockedAchievementIds },
     newObjectiveIds,
     newAchievementIds,
+    newlyCompletedStage,
+    completionReward,
   };
 }
 

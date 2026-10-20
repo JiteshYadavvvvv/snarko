@@ -1,6 +1,7 @@
 import { Coins, Gauge, Settings2, Wrench } from "lucide-react";
 import {
   MAX_UPGRADE_LEVEL,
+  buildVehicleConfig,
   getUpgradeCost,
   getUpgradeDescription,
   getUpgradeLabel,
@@ -9,6 +10,9 @@ import { VEHICLES } from "@/components/games/ridge-runner/engine/vehicles";
 import type {
   SaveData,
   UpgradeCategory,
+  UpgradeLevels,
+  VehicleConfig,
+  VehicleDefinition,
 } from "@/components/games/ridge-runner/engine/types";
 import { VehiclePreview } from "@/components/games/ridge-runner/vehicle-preview";
 import { Button } from "@/components/ui/button";
@@ -20,6 +24,65 @@ const UPGRADE_ICONS: Record<UpgradeCategory, typeof Gauge> = {
 };
 
 const UPGRADE_ORDER: UpgradeCategory[] = ["engine", "suspension", "tires"];
+
+const MAX_UPGRADES: UpgradeLevels = {
+  engine: MAX_UPGRADE_LEVEL,
+  suspension: MAX_UPGRADE_LEVEL,
+  tires: MAX_UPGRADE_LEVEL,
+};
+
+const STAT_KEYS: {
+  key: keyof VehicleConfig;
+  label: string;
+}[] = [
+  { key: "enginePower", label: "Power" },
+  { key: "tireGrip", label: "Grip" },
+  { key: "suspensionStiffness", label: "Suspension" },
+  { key: "maxFuel", label: "Fuel tank" },
+];
+
+function statCeiling(key: keyof VehicleConfig): number {
+  return Math.max(
+    ...VEHICLES.map(
+      (vehicle) =>
+        buildVehicleConfig(vehicle.baseConfig, MAX_UPGRADES)[key] as number,
+    ),
+  );
+}
+
+function StatBars({
+  vehicle,
+  upgrades,
+}: {
+  vehicle: VehicleDefinition;
+  upgrades: UpgradeLevels;
+}) {
+  const config = buildVehicleConfig(vehicle.baseConfig, upgrades);
+  return (
+    <div className="flex flex-col gap-2">
+      {STAT_KEYS.map(({ key, label }) => {
+        const ceiling = statCeiling(key);
+        const percent = Math.min(
+          100,
+          Math.round(((config[key] as number) / ceiling) * 100),
+        );
+        return (
+          <div key={key} className="flex items-center gap-2 text-xs">
+            <span className="text-muted-foreground w-20 shrink-0 text-left">
+              {label}
+            </span>
+            <span className="bg-border h-1.5 flex-1 overflow-hidden rounded-full">
+              <span
+                className="bg-brand-red block h-full rounded-full"
+                style={{ width: `${percent}%` }}
+              />
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 function UpgradeRow({
   category,
@@ -96,6 +159,9 @@ export function Garage({
 }) {
   const selectedVehicleId = save.selectedVehicleId;
   const selectedState = save.vehicles[selectedVehicleId];
+  const selectedVehicle =
+    VEHICLES.find((vehicle) => vehicle.id === selectedVehicleId) ??
+    VEHICLES[0];
 
   return (
     <div className="flex flex-col gap-4 p-2 text-center sm:p-4">
@@ -112,6 +178,27 @@ export function Garage({
           {save.coins} coins
         </span>
         <span>Best distance: {bestDistanceLabel}</span>
+      </div>
+
+      <div className="bg-surface-elevated border-border flex flex-col items-center gap-3 rounded-lg border p-4 sm:flex-row sm:text-left">
+        <VehiclePreview
+          vehicle={selectedVehicle}
+          className="h-20 w-32 shrink-0"
+        />
+        <div className="flex-1 text-left">
+          <p className="text-foreground font-semibold">
+            {selectedVehicle.name}
+          </p>
+          <p className="text-muted-foreground mb-2 text-xs">
+            {selectedVehicle.description}
+          </p>
+          {selectedState && (
+            <StatBars
+              vehicle={selectedVehicle}
+              upgrades={selectedState.upgrades}
+            />
+          )}
+        </div>
       </div>
 
       <ul className="grid grid-cols-3 gap-2">

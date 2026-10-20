@@ -18,6 +18,7 @@ import type {
 const NO_INPUT: VehicleInput = { gas: false, brake: false };
 const STAGE_ID = "countryside";
 const VEHICLE_ID = "scout-buggy";
+const FAR_FINISH = 1_000_000;
 
 function flatTerrain(groundY: number, length = 10000): Terrain {
   return { segmentWidth: 500, heights: [groundY, groundY], length };
@@ -73,6 +74,7 @@ describe("step", () => {
       [],
       NO_INPUT,
       1 / 60,
+      FAR_FINISH,
     );
     expect(result.state).toBe(state);
     expect(result.events).toEqual([]);
@@ -94,6 +96,7 @@ describe("step", () => {
       [collectible],
       NO_INPUT,
       1 / 60,
+      FAR_FINISH,
     );
     expect(result.state.collectedIds).toContain("coin-1");
     expect(result.state.coinsThisRun).toBe(1);
@@ -120,6 +123,7 @@ describe("step", () => {
       [collectible],
       NO_INPUT,
       1 / 60,
+      FAR_FINISH,
     );
     expect(result.state.vehicle.fuel).toBeGreaterThan(50);
   });
@@ -141,6 +145,7 @@ describe("step", () => {
       [collectible],
       NO_INPUT,
       1 / 60,
+      FAR_FINISH,
     );
     expect(result.state.coinsThisRun).toBe(0);
   });
@@ -161,6 +166,7 @@ describe("step", () => {
       [collectible],
       NO_INPUT,
       1 / 60,
+      FAR_FINISH,
     );
     expect(result.state.coinsThisRun).toBe(0);
   });
@@ -183,9 +189,76 @@ describe("step", () => {
       [],
       NO_INPUT,
       1 / 60,
+      FAR_FINISH,
     );
     expect(result.state.status).toBe("crashed");
     expect(result.events.some((e) => e.type === "crashed")).toBe(true);
+  });
+
+  it("transitions to finished when distance reaches the finish line", () => {
+    const terrain = flatTerrain(400);
+    const started = startRun(terrain, STAGE_ID, VEHICLE_ID);
+    const state = {
+      ...started,
+      vehicle: { ...started.vehicle, distanceTraveled: 905 },
+    };
+    const result = step(
+      state,
+      BASE_VEHICLE_CONFIG,
+      terrain,
+      [],
+      NO_INPUT,
+      1 / 60,
+      900,
+    );
+    expect(result.state.status).toBe("finished");
+    expect(result.events.some((e) => e.type === "finished")).toBe(true);
+  });
+
+  it("reaching the finish line takes priority over running out of fuel", () => {
+    const terrain = flatTerrain(400);
+    const started = startRun(terrain, STAGE_ID, VEHICLE_ID);
+    const state = {
+      ...started,
+      vehicle: {
+        ...started.vehicle,
+        position: { x: started.vehicle.position.x, y: 370 },
+        velocity: { x: 0, y: 0 },
+        rearWheel: { compression: 20, grounded: true },
+        frontWheel: { compression: 20, grounded: true },
+        fuel: 0,
+        distanceTraveled: 905,
+      },
+    };
+    const result = step(
+      state,
+      BASE_VEHICLE_CONFIG,
+      terrain,
+      [],
+      NO_INPUT,
+      1 / 60,
+      900,
+    );
+    expect(result.state.status).toBe("finished");
+  });
+
+  it("does not finish before reaching the finish distance", () => {
+    const terrain = flatTerrain(400);
+    const started = startRun(terrain, STAGE_ID, VEHICLE_ID);
+    const state = {
+      ...started,
+      vehicle: { ...started.vehicle, distanceTraveled: 10 },
+    };
+    const result = step(
+      state,
+      BASE_VEHICLE_CONFIG,
+      terrain,
+      [],
+      NO_INPUT,
+      1 / 60,
+      900,
+    );
+    expect(result.state.status).toBe("playing");
   });
 
   it("transitions to out-of-fuel when fuel is empty and the vehicle has stopped", () => {
@@ -209,6 +282,7 @@ describe("step", () => {
       [],
       NO_INPUT,
       1 / 60,
+      FAR_FINISH,
     );
     expect(result.state.status).toBe("out-of-fuel");
     expect(result.events.some((e) => e.type === "out-of-fuel")).toBe(true);

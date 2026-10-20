@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AchievementsScreen } from "@/components/games/ridge-runner/achievements-screen";
 import { GameplayScreen } from "@/components/games/ridge-runner/gameplay-screen";
 import { Garage } from "@/components/games/ridge-runner/garage";
 import { MainMenu } from "@/components/games/ridge-runner/main-menu";
@@ -18,7 +19,7 @@ import type {
   UpgradeCategory,
 } from "@/components/games/ridge-runner/engine/types";
 
-type Screen = "menu" | "world-map" | "garage" | "game";
+type Screen = "menu" | "world-map" | "garage" | "game" | "achievements";
 
 function formatDistance(value: number): string {
   return `${value}m`;
@@ -64,7 +65,16 @@ export function RidgeRunnerGame() {
   return (
     <div className="theme-dark bg-background border-border rounded-xl border p-4 sm:p-6">
       {screen === "menu" && (
-        <MainMenu save={save} onPlay={() => setScreen("world-map")} />
+        <MainMenu
+          save={save}
+          onPlay={() => setScreen("world-map")}
+          onOpenGarage={() => setScreen("garage")}
+          onOpenAchievements={() => setScreen("achievements")}
+        />
+      )}
+
+      {screen === "achievements" && (
+        <AchievementsScreen save={save} onBack={() => setScreen("menu")} />
       )}
 
       {screen === "world-map" && (
@@ -100,6 +110,10 @@ export function RidgeRunnerGame() {
           onSaveChange={updateSave}
           onExitToGarage={() => setScreen("garage")}
           onExitToWorldMap={() => setScreen("world-map")}
+          onNextStage={(nextStageId) => {
+            setActiveStageId(nextStageId);
+            setScreen("garage");
+          }}
         />
       )}
     </div>

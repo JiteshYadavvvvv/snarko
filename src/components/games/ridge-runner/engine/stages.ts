@@ -29,6 +29,8 @@ export const STAGES: StageDefinition[] = [
       mountainFill: "#8fb0a8",
       mountainFarFill: "#bcd6d8",
     },
+    finishDistance: 900,
+    completionReward: 60,
   },
   {
     id: "dusk-ridge",
@@ -56,6 +58,8 @@ export const STAGES: StageDefinition[] = [
       mountainFill: "#6b4a6f",
       mountainFarFill: "#8a6a94",
     },
+    finishDistance: 1000,
+    completionReward: 90,
   },
   {
     id: "frostline",
@@ -83,6 +87,8 @@ export const STAGES: StageDefinition[] = [
       mountainFill: "#9fb8c4",
       mountainFarFill: "#c9dce3",
     },
+    finishDistance: 1100,
+    completionReward: 130,
   },
 ];
 
@@ -101,4 +107,12 @@ export function isStageUnlocked(
   return (
     (stageBestDistance[stage.unlock.stageId] ?? 0) >= stage.unlock.distance
   );
+}
+
+export function getNextStage(stageId: string): StageDefinition | undefined {
+  const index = STAGES.findIndex((candidate) => candidate.id === stageId);
+  if (index === -1) {
+    return undefined;
+  }
+  return STAGES[index + 1];
 }

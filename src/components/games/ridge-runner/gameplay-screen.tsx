@@ -1,10 +1,21 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Coins, Fuel, Pause, Play, RotateCcw } from "lucide-react";
+import {
+  Coins,
+  Flag,
+  Fuel,
+  Pause,
+  Play,
+  RotateCcw,
+  Trophy,
+} from "lucide-react";
 import { ACHIEVEMENTS } from "@/components/games/ridge-runner/engine/achievements";
 import { buildVehicleConfig } from "@/components/games/ridge-runner/engine/economy";
-import { OBJECTIVES } from "@/components/games/ridge-runner/engine/objectives";
+import {
+  OBJECTIVES,
+  getObjectivesForStage,
+} from "@/components/games/ridge-runner/engine/objectives";
 import {
   applyRunResult,
   persistSave,
@@ -15,8 +26,13 @@ import {
   groundHeightAt,
 } from "@/components/games/ridge-runner/engine/terrain";
 import { generateSceneryProps } from "@/components/games/ridge-runner/engine/scenery";
-import { getStageDefinition } from "@/components/games/ridge-runner/engine/stages";
 import {
+  getNextStage,
+  getStageDefinition,
+  isStageUnlocked,
+} from "@/components/games/ridge-runner/engine/stages";
+import {
+  RUN_START_X,
   pauseRun,
   resumeRun,
   startRun,
@@ -46,7 +62,23 @@ const TIRE_COLOR = "#17171a";
 const RIM_COLOR = "#c9c9ce";
 const RIM_HUB_COLOR = "#2a2a2e";
 const GLASS_COLOR = "#2c3e46";
+const GLASS_HIGHLIGHT = "rgba(255,255,255,0.22)";
 const LIGHT_COLOR = "#ffe9a8";
+const TAIL_LIGHT_COLOR = "#e6453b";
+const BUMPER_COLOR = "#232327";
+const SHADOW_COLOR = "rgba(10, 14, 12, 0.32)";
+
+function shadeColor(hex: string, percent: number): string {
+  const normalized = hex.replace("#", "");
+  if (normalized.length !== 6) return hex;
+  const num = parseInt(normalized, 16);
+  const amt = Math.round(2.55 * percent);
+  const clamp = (value: number) => Math.max(0, Math.min(255, value));
+  const r = clamp((num >> 16) + amt);
+  const g = clamp(((num >> 8) & 0x00ff) + amt);
+  const b = clamp((num & 0x0000ff) + amt);
+  return `rgb(${r}, ${g}, ${b})`;
+}
 
 interface HudSnapshot {
   status: RunStatus;
@@ -103,6 +135,8 @@ function GameCanvas({
   sceneryProps,
   configRef,
   vehicleId,
+  stageId,
+  finishDistance,
   palette,
   bodyColor,
   accentColor,
@@ -116,6 +150,8 @@ function GameCanvas({
   sceneryProps: SceneryProp[];
   configRef: React.RefObject<VehicleConfig>;
   vehicleId: string;
+  stageId: string;
+  finishDistance: number;
   palette: StagePalette;
   bodyColor: string;
   accentColor: string;
@@ -449,16 +485,217 @@ function GameCanvas({
       ctx!.fill();
     }
 
+    function drawFence(screenX: number, screenY: number, scale: number) {
+      ctx!.fillStyle = palette.groundEdge;
+      ctx!.fillRect(
+        screenX - 14 * scale,
+        screenY - 20 * scale,
+        3 * scale,
+        20 * scale,
+      );
+      ctx!.fillRect(
+        screenX + 11 * scale,
+        screenY - 20 * scale,
+        3 * scale,
+        20 * scale,
+      );
+      ctx!.strokeStyle = palette.groundEdge;
+      ctx!.lineWidth = Math.max(1.5, 2.5 * scale);
+      ctx!.beginPath();
+      ctx!.moveTo(screenX - 15 * scale, screenY - 15 * scale);
+      ctx!.lineTo(screenX + 15 * scale, screenY - 15 * scale);
+      ctx!.moveTo(screenX - 15 * scale, screenY - 6 * scale);
+      ctx!.lineTo(screenX + 15 * scale, screenY - 6 * scale);
+      ctx!.stroke();
+    }
+
+    function drawRockCluster(screenX: number, screenY: number, scale: number) {
+      ctx!.fillStyle = palette.groundEdge;
+      ctx!.beginPath();
+      ctx!.moveTo(screenX - 16 * scale, screenY);
+      ctx!.lineTo(screenX - 10 * scale, screenY - 16 * scale);
+      ctx!.lineTo(screenX, screenY - 10 * scale);
+      ctx!.lineTo(screenX + 9 * scale, screenY - 18 * scale);
+      ctx!.lineTo(screenX + 17 * scale, screenY);
+      ctx!.closePath();
+      ctx!.fill();
+      ctx!.fillStyle = palette.mountainFill;
+      ctx!.beginPath();
+      ctx!.moveTo(screenX - 8 * scale, screenY);
+      ctx!.lineTo(screenX - 3 * scale, screenY - 9 * scale);
+      ctx!.lineTo(screenX + 4 * scale, screenY - 5 * scale);
+      ctx!.lineTo(screenX + 10 * scale, screenY);
+      ctx!.closePath();
+      ctx!.fill();
+    }
+
+    function drawRockSpire(screenX: number, screenY: number, scale: number) {
+      ctx!.fillStyle = palette.mountainFill;
+      ctx!.beginPath();
+      ctx!.moveTo(screenX, screenY - 60 * scale);
+      ctx!.lineTo(screenX + 10 * scale, screenY - 24 * scale);
+      ctx!.lineTo(screenX + 18 * scale, screenY);
+      ctx!.lineTo(screenX - 18 * scale, screenY);
+      ctx!.lineTo(screenX - 9 * scale, screenY - 22 * scale);
+      ctx!.closePath();
+      ctx!.fill();
+      ctx!.fillStyle = palette.groundEdge;
+      ctx!.globalAlpha = 0.45;
+      ctx!.beginPath();
+      ctx!.moveTo(screenX, screenY - 60 * scale);
+      ctx!.lineTo(screenX + 10 * scale, screenY - 24 * scale);
+      ctx!.lineTo(screenX + 4 * scale, screenY - 20 * scale);
+      ctx!.closePath();
+      ctx!.fill();
+      ctx!.globalAlpha = 1;
+    }
+
+    function drawEvergreen(screenX: number, screenY: number, scale: number) {
+      ctx!.fillStyle = "#5a4634";
+      ctx!.fillRect(
+        screenX - 2 * scale,
+        screenY - 12 * scale,
+        4 * scale,
+        12 * scale,
+      );
+      ctx!.fillStyle = palette.mountainFill;
+      for (let tier = 0; tier < 3; tier += 1) {
+        const tierY = screenY - 14 * scale - tier * 13 * scale;
+        const width = (20 - tier * 4) * scale;
+        ctx!.beginPath();
+        ctx!.moveTo(screenX, tierY - 16 * scale);
+        ctx!.lineTo(screenX + width * 0.5, tierY);
+        ctx!.lineTo(screenX - width * 0.5, tierY);
+        ctx!.closePath();
+        ctx!.fill();
+      }
+      ctx!.fillStyle = "#ffffff";
+      ctx!.globalAlpha = 0.55;
+      for (let tier = 0; tier < 3; tier += 1) {
+        const tierY = screenY - 14 * scale - tier * 13 * scale;
+        const width = (20 - tier * 4) * scale;
+        ctx!.beginPath();
+        ctx!.moveTo(screenX, tierY - 16 * scale);
+        ctx!.lineTo(screenX + width * 0.18, tierY - 4 * scale);
+        ctx!.lineTo(screenX - width * 0.12, tierY - 4 * scale);
+        ctx!.closePath();
+        ctx!.fill();
+      }
+      ctx!.globalAlpha = 1;
+    }
+
+    function drawIceCrystals(screenX: number, screenY: number, scale: number) {
+      ctx!.fillStyle = "#e8f4f8";
+      ctx!.strokeStyle = palette.groundEdge;
+      ctx!.lineWidth = 1;
+      for (const [dx, h] of [
+        [-10, 22],
+        [0, 32],
+        [10, 18],
+      ] as const) {
+        ctx!.beginPath();
+        ctx!.moveTo(screenX + dx * scale, screenY);
+        ctx!.lineTo(screenX + dx * scale + 5 * scale, screenY - h * scale * 0.4);
+        ctx!.lineTo(screenX + dx * scale, screenY - h * scale);
+        ctx!.lineTo(screenX + dx * scale - 5 * scale, screenY - h * scale * 0.4);
+        ctx!.closePath();
+        ctx!.fill();
+        ctx!.stroke();
+      }
+    }
+
+    function drawSnowDrift(screenX: number, screenY: number, scale: number) {
+      ctx!.fillStyle = "#eef6f8";
+      ctx!.beginPath();
+      ctx!.ellipse(
+        screenX,
+        screenY - 4 * scale,
+        20 * scale,
+        9 * scale,
+        0,
+        0,
+        Math.PI * 2,
+      );
+      ctx!.ellipse(
+        screenX - 12 * scale,
+        screenY - 2 * scale,
+        11 * scale,
+        6 * scale,
+        0,
+        0,
+        Math.PI * 2,
+      );
+      ctx!.fill();
+      ctx!.fillStyle = palette.groundEdge;
+      ctx!.globalAlpha = 0.25;
+      ctx!.beginPath();
+      ctx!.ellipse(
+        screenX,
+        screenY - 2 * scale,
+        18 * scale,
+        5 * scale,
+        0,
+        0,
+        Math.PI * 2,
+      );
+      ctx!.fill();
+      ctx!.globalAlpha = 1;
+    }
+
+    const SCENERY_BY_STAGE: Record<
+      string,
+      ((x: number, y: number, scale: number) => void)[]
+    > = {
+      countryside: [drawTree, drawBush, drawFence],
+      "dusk-ridge": [drawTree, drawRockCluster, drawRockSpire],
+      frostline: [drawEvergreen, drawIceCrystals, drawSnowDrift],
+    };
+
     function drawScenery() {
+      const variants = SCENERY_BY_STAGE[stageId] ?? SCENERY_BY_STAGE.countryside;
       for (const prop of sceneryProps) {
         const screen = worldToScreen(prop.x, prop.groundY);
         if (screen.x < -60 || screen.x > LOGICAL_WIDTH + 60) continue;
-        if (prop.variant === 0) {
-          drawTree(screen.x, screen.y, prop.scale);
-        } else {
-          drawBush(screen.x, screen.y, prop.scale);
+        const draw = variants[prop.variant] ?? variants[0];
+        draw(screen.x, screen.y, prop.scale);
+      }
+    }
+
+    function drawFinishMarker() {
+      const screen = worldToScreen(
+        finishDistance + RUN_START_X,
+        groundHeightAt(terrain, finishDistance + RUN_START_X),
+      );
+      if (screen.x < -80 || screen.x > LOGICAL_WIDTH + 80) return;
+
+      const poleHeight = 118;
+      ctx!.strokeStyle = "#3a3a3e";
+      ctx!.lineWidth = 5;
+      ctx!.beginPath();
+      ctx!.moveTo(screen.x, screen.y + 4);
+      ctx!.lineTo(screen.x, screen.y - poleHeight);
+      ctx!.stroke();
+
+      const checkSize = 9;
+      for (let row = 0; row < 4; row += 1) {
+        for (let col = 0; col < 4; col += 1) {
+          ctx!.fillStyle = (row + col) % 2 === 0 ? "#1a1a1d" : "#f4f4f6";
+          ctx!.fillRect(
+            screen.x + col * checkSize,
+            screen.y - poleHeight + row * checkSize,
+            checkSize,
+            checkSize,
+          );
         }
       }
+      ctx!.strokeStyle = "#1a1a1d";
+      ctx!.lineWidth = 1.5;
+      ctx!.strokeRect(
+        screen.x,
+        screen.y - poleHeight,
+        checkSize * 4,
+        checkSize * 4,
+      );
     }
 
     function drawCollectibles() {
@@ -532,91 +769,189 @@ function GameCanvas({
       ctx!.stroke();
     }
 
+    function bodyGradient(x0: number, y0: number, x1: number, y1: number) {
+      const gradient = ctx!.createLinearGradient(x0, y0, x1, y1);
+      gradient.addColorStop(0, shadeColor(bodyColor, 26));
+      gradient.addColorStop(0.55, bodyColor);
+      gradient.addColorStop(1, shadeColor(bodyColor, -22));
+      return gradient;
+    }
+
+    function drawGroundShadow(halfWidth: number, y: number) {
+      ctx!.save();
+      ctx!.fillStyle = SHADOW_COLOR;
+      ctx!.beginPath();
+      ctx!.ellipse(0, y, halfWidth, halfWidth * 0.22, 0, 0, Math.PI * 2);
+      ctx!.fill();
+      ctx!.restore();
+    }
+
     function drawBuggyBody(config: VehicleConfig) {
       const l = config.chassisHalfLength;
       const h = config.chassisHalfHeight;
 
-      ctx!.fillStyle = bodyColor;
+      drawGroundShadow(l * 1.3, h * 1.5);
+
+      ctx!.fillStyle = bodyGradient(-l, 0, l, 0);
       ctx!.beginPath();
-      ctx!.moveTo(-l, h * 0.95);
-      ctx!.lineTo(-l * 0.9, -h * 0.1);
-      ctx!.lineTo(l * 0.6, -h * 0.3);
-      ctx!.lineTo(l * 1.05, h * 0.2);
-      ctx!.lineTo(l * 1.05, h * 0.95);
+      ctx!.moveTo(-l * 1.08, h * 1.05);
+      ctx!.lineTo(-l * 1.1, -h * 0.05);
+      ctx!.quadraticCurveTo(-l * 1.05, -h * 0.55, -l * 0.55, -h * 0.7);
+      ctx!.lineTo(l * 0.35, -h * 0.85);
+      ctx!.quadraticCurveTo(l * 0.75, -h * 0.75, l * 0.95, -h * 0.35);
+      ctx!.lineTo(l * 1.15, h * 0.2);
+      ctx!.lineTo(l * 1.15, h * 1.05);
       ctx!.closePath();
+      ctx!.fill();
+      ctx!.strokeStyle = shadeColor(bodyColor, -32);
+      ctx!.lineWidth = 1.4;
+      ctx!.stroke();
+
+      ctx!.fillStyle = shadeColor(bodyColor, -18);
+      ctx!.beginPath();
+      ctx!.ellipse(-l * 1.0, h * 0.2, l * 0.26, h * 0.6, 0, 0, Math.PI * 2);
+      ctx!.fill();
+      ctx!.beginPath();
+      ctx!.ellipse(l * 1.0, h * 0.2, l * 0.26, h * 0.6, 0, 0, Math.PI * 2);
       ctx!.fill();
 
       ctx!.strokeStyle = accentColor;
-      ctx!.lineWidth = Math.max(3, h * 0.22);
+      ctx!.lineWidth = Math.max(3, h * 0.24);
       ctx!.lineCap = "round";
+      ctx!.lineJoin = "round";
       ctx!.beginPath();
-      ctx!.moveTo(-l * 0.25, -h * 0.15);
-      ctx!.lineTo(-l * 0.3, -h * 1.9);
-      ctx!.lineTo(l * 0.1, -h * 1.9);
-      ctx!.lineTo(l * 0.15, -h * 0.25);
+      ctx!.moveTo(-l * 0.4, -h * 0.65);
+      ctx!.lineTo(-l * 0.45, -h * 2.0);
+      ctx!.lineTo(l * 0.15, -h * 2.0);
+      ctx!.lineTo(l * 0.25, -h * 0.75);
+      ctx!.moveTo(-l * 0.3, -h * 1.35);
+      ctx!.lineTo(l * 0.05, -h * 1.35);
       ctx!.stroke();
+
+      ctx!.fillStyle = "#1c1c20";
+      ctx!.beginPath();
+      ctx!.roundRect(-l * 0.22, -h * 1.9, l * 0.35, h * 0.55, 3);
+      ctx!.fill();
+
+      ctx!.fillStyle = shadeColor(accentColor, 50);
+      ctx!.globalAlpha = 0.5;
+      ctx!.beginPath();
+      ctx!.moveTo(-l * 0.9, -h * 0.5);
+      ctx!.lineTo(-l * 0.3, -h * 0.65);
+      ctx!.lineTo(-l * 0.3, -h * 0.4);
+      ctx!.lineTo(-l * 0.9, -h * 0.25);
+      ctx!.closePath();
+      ctx!.fill();
+      ctx!.globalAlpha = 1;
 
       ctx!.fillStyle = "#101014";
       ctx!.beginPath();
-      ctx!.arc(-l * 1.05, h * 0.15, config.wheelRadius * 0.4, 0, Math.PI * 2);
+      ctx!.arc(-l * 1.18, h * 0.15, config.wheelRadius * 0.42, 0, Math.PI * 2);
       ctx!.fill();
       ctx!.strokeStyle = RIM_COLOR;
       ctx!.lineWidth = 2;
       ctx!.stroke();
 
-      ctx!.strokeStyle = accentColor;
-      ctx!.lineWidth = Math.max(2.5, h * 0.18);
+      ctx!.fillStyle = BUMPER_COLOR;
       ctx!.beginPath();
-      ctx!.moveTo(l * 0.9, h * 0.3);
-      ctx!.lineTo(l * 1.2, h * 0.1);
-      ctx!.moveTo(l * 0.9, h * 0.55);
-      ctx!.lineTo(l * 1.2, h * 0.4);
-      ctx!.stroke();
+      ctx!.roundRect(l * 0.95, h * 0.05, l * 0.28, h * 0.24, 3);
+      ctx!.fill();
+      ctx!.beginPath();
+      ctx!.roundRect(-l * 1.2, h * 0.65, l * 0.3, h * 0.24, 3);
+      ctx!.fill();
 
       ctx!.fillStyle = LIGHT_COLOR;
       ctx!.beginPath();
-      ctx!.arc(l * 1.0, -h * 0.05, h * 0.22, 0, Math.PI * 2);
+      ctx!.arc(l * 1.05, -h * 0.25, h * 0.24, 0, Math.PI * 2);
       ctx!.fill();
+      ctx!.strokeStyle = shadeColor(LIGHT_COLOR, -20);
+      ctx!.lineWidth = 1;
+      ctx!.stroke();
     }
 
     function drawTruckBody(config: VehicleConfig) {
       const l = config.chassisHalfLength;
       const h = config.chassisHalfHeight;
 
-      ctx!.fillStyle = bodyColor;
-      ctx!.beginPath();
-      ctx!.roundRect(-l * 1.05, -h * 0.3, l * 0.95, h * 1.3, 4);
-      ctx!.fill();
-      ctx!.strokeStyle = accentColor;
-      ctx!.lineWidth = 2;
-      ctx!.strokeRect(-l * 1.0, -h * 0.2, l * 0.85, h * 0.18);
+      drawGroundShadow(l * 1.3, h * 1.6);
 
+      ctx!.fillStyle = shadeColor(bodyColor, -28);
       ctx!.beginPath();
-      ctx!.roundRect(-l * 0.12, -h * 1.8, l * 1.15, h * 2, 8);
+      ctx!.roundRect(-l * 1.1, h * 0.55, l * 2.2, h * 0.35, 3);
+      ctx!.fill();
+
+      ctx!.fillStyle = bodyGradient(-l, -h, l, h);
+      ctx!.beginPath();
+      ctx!.roundRect(-l * 1.1, -h * 0.35, l * 0.95, h * 1.35, 5);
+      ctx!.fill();
+      ctx!.beginPath();
+      ctx!.roundRect(-l * 0.18, -h * 1.85, l * 1.18, h * 2.05, 9);
+      ctx!.fill();
+      ctx!.strokeStyle = shadeColor(bodyColor, -32);
+      ctx!.lineWidth = 1.2;
+      ctx!.beginPath();
+      ctx!.moveTo(l * 0.35, -h * 1.8);
+      ctx!.lineTo(l * 0.35, h * 0.9);
+      ctx!.stroke();
+
+      ctx!.fillStyle = BUMPER_COLOR;
+      ctx!.beginPath();
+      ctx!.roundRect(-l * 1.05, -h * 0.2, l * 0.85, h * 0.18, 2);
       ctx!.fill();
 
       ctx!.fillStyle = GLASS_COLOR;
       ctx!.beginPath();
-      ctx!.roundRect(l * 0.02, -h * 1.55, l * 0.55, h * 0.9, 4);
+      ctx!.roundRect(l * 0.0, -h * 1.6, l * 0.58, h * 0.95, 4);
+      ctx!.fill();
+      ctx!.fillStyle = GLASS_HIGHLIGHT;
+      ctx!.beginPath();
+      ctx!.moveTo(l * 0.04, -h * 1.55);
+      ctx!.lineTo(l * 0.22, -h * 1.55);
+      ctx!.lineTo(l * 0.1, -h * 0.75);
+      ctx!.lineTo(l * 0.04, -h * 0.75);
+      ctx!.closePath();
+      ctx!.fill();
+
+      ctx!.fillStyle = shadeColor(bodyColor, -10);
+      ctx!.beginPath();
+      ctx!.roundRect(l * 0.58, -h * 1.1, l * 0.12, h * 0.3, 2);
       ctx!.fill();
 
       ctx!.fillStyle = accentColor;
       ctx!.beginPath();
-      ctx!.roundRect(l * 0.92, h * 0.1, l * 0.35, h * 0.75, 4);
+      ctx!.roundRect(l * 0.95, h * 0.08, l * 0.35, h * 0.72, 4);
       ctx!.fill();
+      ctx!.strokeStyle = shadeColor(accentColor, -25);
+      ctx!.lineWidth = 1.2;
+      for (let i = 1; i < 3; i += 1) {
+        ctx!.beginPath();
+        ctx!.moveTo(l * 0.95, h * (0.08 + i * 0.22));
+        ctx!.lineTo(l * 1.3, h * (0.08 + i * 0.22));
+        ctx!.stroke();
+      }
 
+      ctx!.fillStyle = accentColor;
       ctx!.beginPath();
-      ctx!.roundRect(-l * 0.05, -h * 2.05, l * 0.6, h * 0.22, 3);
+      ctx!.roundRect(-l * 0.05, -h * 2.1, l * 0.6, h * 0.22, 3);
       ctx!.fill();
       ctx!.fillStyle = LIGHT_COLOR;
       ctx!.beginPath();
-      ctx!.arc(-l * 0.2, -h * 1.94, 2.6, 0, Math.PI * 2);
-      ctx!.arc(l * 0.15, -h * 1.94, 2.6, 0, Math.PI * 2);
+      ctx!.arc(-l * 0.2, -h * 1.99, 2.6, 0, Math.PI * 2);
+      ctx!.arc(l * 0.15, -h * 1.99, 2.6, 0, Math.PI * 2);
       ctx!.fill();
 
+      ctx!.fillStyle = BUMPER_COLOR;
+      ctx!.beginPath();
+      ctx!.roundRect(l * 1.0, -h * 0.35, l * 0.16, h * 0.4, 2);
+      ctx!.fill();
       ctx!.fillStyle = LIGHT_COLOR;
       ctx!.beginPath();
-      ctx!.arc(l * 1.08, h * 0.2, h * 0.18, 0, Math.PI * 2);
+      ctx!.arc(l * 1.1, -h * 0.15, h * 0.17, 0, Math.PI * 2);
+      ctx!.fill();
+
+      ctx!.fillStyle = TAIL_LIGHT_COLOR;
+      ctx!.beginPath();
+      ctx!.roundRect(-l * 1.12, h * 0.05, l * 0.1, h * 0.3, 2);
       ctx!.fill();
     }
 
@@ -624,42 +959,85 @@ function GameCanvas({
       const l = config.chassisHalfLength;
       const h = config.chassisHalfHeight;
 
-      ctx!.fillStyle = bodyColor;
+      drawGroundShadow(l * 1.3, h * 1.4);
+
+      ctx!.fillStyle = bodyGradient(-l, -h, l, h);
       ctx!.beginPath();
-      ctx!.moveTo(-l, h * 0.9);
-      ctx!.lineTo(-l, -h * 0.1);
-      ctx!.lineTo(l * 0.5, -h * 1.6);
-      ctx!.lineTo(l * 0.95, -h * 0.2);
-      ctx!.lineTo(l * 1.05, h * 0.3);
-      ctx!.lineTo(l * 1.05, h * 0.9);
+      ctx!.moveTo(-l * 1.05, h * 0.95);
+      ctx!.lineTo(-l * 1.05, -h * 0.15);
+      ctx!.quadraticCurveTo(-l * 0.8, -h * 1.3, l * 0.15, -h * 1.75);
+      ctx!.quadraticCurveTo(l * 0.65, -h * 1.5, l * 1.0, -h * 0.25);
+      ctx!.lineTo(l * 1.1, h * 0.35);
+      ctx!.lineTo(l * 1.1, h * 0.95);
       ctx!.closePath();
       ctx!.fill();
+      ctx!.strokeStyle = shadeColor(bodyColor, -32);
+      ctx!.lineWidth = 1.2;
+      ctx!.stroke();
 
       ctx!.fillStyle = GLASS_COLOR;
       ctx!.beginPath();
-      ctx!.moveTo(-l * 0.55, -h * 0.15);
-      ctx!.lineTo(-l * 0.1, -h * 1.55);
-      ctx!.lineTo(l * 0.35, -h * 1.55);
-      ctx!.lineTo(l * 0.65, -h * 0.15);
+      ctx!.moveTo(-l * 0.58, -h * 0.2);
+      ctx!.quadraticCurveTo(-l * 0.4, -h * 1.1, l * 0.1, -h * 1.5);
+      ctx!.quadraticCurveTo(l * 0.5, -h * 1.3, l * 0.68, -h * 0.2);
+      ctx!.closePath();
+      ctx!.fill();
+      ctx!.fillStyle = GLASS_HIGHLIGHT;
+      ctx!.beginPath();
+      ctx!.moveTo(-l * 0.5, -h * 0.35);
+      ctx!.lineTo(-l * 0.3, -h * 0.9);
+      ctx!.lineTo(-l * 0.18, -h * 0.85);
+      ctx!.lineTo(-l * 0.35, -h * 0.25);
       ctx!.closePath();
       ctx!.fill();
 
-      ctx!.strokeStyle = accentColor;
-      ctx!.lineWidth = 3;
+      ctx!.strokeStyle = shadeColor(bodyColor, -30);
+      ctx!.lineWidth = 1.2;
       ctx!.beginPath();
-      ctx!.moveTo(-l * 0.95, -h * 1.0);
-      ctx!.lineTo(-l * 0.95, -h * 0.55);
-      ctx!.moveTo(-l * 1.2, -h * 1.0);
-      ctx!.lineTo(-l * 1.2, -h * 0.55);
+      ctx!.moveTo(-l * 0.12, -h * 0.15);
+      ctx!.lineTo(l * 0.75, -h * 0.05);
+      ctx!.stroke();
+      ctx!.fillStyle = shadeColor(bodyColor, -25);
+      ctx!.beginPath();
+      ctx!.arc(l * 0.5, -h * 0.08, 2.2, 0, Math.PI * 2);
+      ctx!.fill();
+
+      ctx!.fillStyle = shadeColor(bodyColor, 20);
+      ctx!.globalAlpha = 0.5;
+      ctx!.beginPath();
+      ctx!.roundRect(-l * 0.95, h * 0.55, l * 1.6, h * 0.14, 2);
+      ctx!.fill();
+      ctx!.globalAlpha = 1;
+
+      ctx!.strokeStyle = accentColor;
+      ctx!.lineWidth = 3.5;
+      ctx!.lineCap = "round";
+      ctx!.beginPath();
+      ctx!.moveTo(-l * 0.98, -h * 0.95);
+      ctx!.lineTo(-l * 0.98, -h * 0.5);
+      ctx!.moveTo(-l * 1.28, -h * 1.0);
+      ctx!.lineTo(-l * 1.28, -h * 0.5);
       ctx!.stroke();
       ctx!.fillStyle = accentColor;
       ctx!.beginPath();
-      ctx!.roundRect(-l * 1.25, -h * 1.15, l * 0.4, h * 0.22, 2);
+      ctx!.roundRect(-l * 1.33, -h * 1.12, l * 0.42, h * 0.2, 2);
+      ctx!.fill();
+
+      ctx!.fillStyle = BUMPER_COLOR;
+      ctx!.beginPath();
+      ctx!.roundRect(l * 0.95, -h * 0.05, l * 0.2, h * 0.5, 2);
+      ctx!.fill();
+      ctx!.beginPath();
+      ctx!.roundRect(-l * 1.15, h * 0.15, l * 0.18, h * 0.5, 2);
       ctx!.fill();
 
       ctx!.fillStyle = LIGHT_COLOR;
       ctx!.beginPath();
-      ctx!.arc(l * 1.0, h * 0.25, h * 0.26, 0, Math.PI * 2);
+      ctx!.arc(l * 1.02, h * 0.15, h * 0.24, 0, Math.PI * 2);
+      ctx!.fill();
+      ctx!.fillStyle = TAIL_LIGHT_COLOR;
+      ctx!.beginPath();
+      ctx!.roundRect(-l * 1.12, h * 0.0, l * 0.1, h * 0.32, 2);
       ctx!.fill();
     }
 
@@ -745,6 +1123,7 @@ function GameCanvas({
         collectibles,
         inputRef.current,
         dt,
+        finishDistance,
       );
       runStateRef.current = result.state;
 
@@ -789,6 +1168,33 @@ function GameCanvas({
         }
         if (event.type === "out-of-fuel") {
           announce("Out of fuel.");
+        }
+        if (event.type === "finished") {
+          announce("Stage finished.");
+          spawnParticles(
+            vehicle.position.x,
+            vehicle.position.y,
+            24,
+            "sparkle",
+            "#ffe9a8",
+            60,
+            180,
+            0.5,
+            0.9,
+            90,
+          );
+          spawnParticles(
+            vehicle.position.x,
+            vehicle.position.y,
+            16,
+            "sparkle",
+            "#3bc9e6",
+            40,
+            140,
+            0.5,
+            0.8,
+            70,
+          );
         }
         if (event.type === "fuel-collected") {
           announce("Fuel collected.");
@@ -848,6 +1254,7 @@ function GameCanvas({
       drawTerrainLayer(0.5, -70, palette.groundFarFill, false, false);
       drawScenery();
       drawTerrainLayer(1, 0, palette.groundFill, true, true);
+      drawFinishMarker();
       drawCollectibles();
       drawVehicle();
       drawParticles(dt);
@@ -877,11 +1284,13 @@ function GameCanvas({
     bodyColor,
     collectibles,
     configRef,
+    finishDistance,
     onHudChange,
     onInitError,
     palette,
     runStateRef,
     sceneryProps,
+    stageId,
     terrain,
     vehicleId,
   ]);
@@ -896,7 +1305,7 @@ function GameCanvas({
       tabIndex={0}
       role="group"
       aria-label="Ridge Runner game surface"
-      className="focus-visible:outline-brand-red relative w-full touch-none select-none"
+      className="relative w-full touch-none rounded-lg select-none focus-visible:outline-none focus-visible:[box-shadow:0_0_0_3px_rgba(230,59,66,0.28)]"
     >
       <canvas ref={canvasRef} className="block w-full rounded-lg" />
       <div className="absolute inset-x-0 bottom-3 flex justify-between px-3 sm:hidden">
@@ -951,6 +1360,7 @@ export function GameplayScreen({
   onSaveChange,
   onExitToGarage,
   onExitToWorldMap,
+  onNextStage,
 }: {
   stageId: string;
   vehicleId: string;
@@ -958,6 +1368,7 @@ export function GameplayScreen({
   onSaveChange: (save: SaveData) => void;
   onExitToGarage: () => void;
   onExitToWorldMap: () => void;
+  onNextStage: (stageId: string) => void;
 }) {
   const stage = useMemo(() => getStageDefinition(stageId), [stageId]);
   const vehicleDefinition = useMemo(
@@ -996,11 +1407,16 @@ export function GameplayScreen({
     isNewBest: boolean;
     newObjectiveLabels: string[];
     newAchievementNames: string[];
+    newlyCompletedStage: boolean;
+    completionReward: number;
+    nextStageId: string | null;
   } | null>(null);
 
   useEffect(() => {
     if (
-      (hud.status === "crashed" || hud.status === "out-of-fuel") &&
+      (hud.status === "crashed" ||
+        hud.status === "out-of-fuel" ||
+        hud.status === "finished") &&
       !resultAppliedRef.current
     ) {
       resultAppliedRef.current = true;
@@ -1012,10 +1428,16 @@ export function GameplayScreen({
         coinsThisRun: runStateRef.current.coinsThisRun,
         crashed: hud.status === "crashed",
         outOfFuel: hud.status === "out-of-fuel",
+        finished: hud.status === "finished",
       };
       const outcomeResult = applyRunResult(save, result);
       persistSave(outcomeResult.save);
       onSaveChange(outcomeResult.save);
+
+      const nextStage = getNextStage(stageId);
+      const nextStageUnlocked =
+        nextStage !== undefined &&
+        isStageUnlocked(nextStage, outcomeResult.save.stageBestDistance);
 
       setOutcome({
         isNewBest: Math.round(result.distance) > previousBest,
@@ -1025,6 +1447,9 @@ export function GameplayScreen({
         newAchievementNames: ACHIEVEMENTS.filter((a) =>
           outcomeResult.newAchievementIds.includes(a.id),
         ).map((a) => a.name),
+        newlyCompletedStage: outcomeResult.newlyCompletedStage,
+        completionReward: outcomeResult.completionReward,
+        nextStageId: nextStageUnlocked ? nextStage.id : null,
       });
     }
   }, [hud.status, onSaveChange, save, stageId, vehicleId]);
@@ -1094,7 +1519,16 @@ export function GameplayScreen({
       ? "Crashed"
       : hud.status === "out-of-fuel"
         ? "Out of fuel"
-        : null;
+        : hud.status === "finished"
+          ? "Victory!"
+          : null;
+
+  const nextObjective =
+    hud.status === "playing" || hud.status === "paused"
+      ? getObjectivesForStage(stageId).find(
+          (objective) => !save.completedObjectiveIds.includes(objective.id),
+        )
+      : undefined;
 
   return (
     <div className="flex flex-col gap-3">
@@ -1133,6 +1567,12 @@ export function GameplayScreen({
               {hud.coinsThisRun}
             </span>
           </span>
+          {nextObjective && (
+            <span className="text-muted-foreground inline-flex items-center gap-1.5 text-xs">
+              <Flag className="size-3.5" aria-hidden="true" />
+              Goal: {nextObjective.label}
+            </span>
+          )}
         </div>
         {(hud.status === "playing" || hud.status === "paused") && (
           <div className="flex items-center gap-2">
@@ -1165,6 +1605,8 @@ export function GameplayScreen({
           sceneryProps={sceneryProps}
           configRef={configRef}
           vehicleId={vehicleId}
+          stageId={stageId}
+          finishDistance={stage.finishDistance}
           palette={stage.palette}
           bodyColor={vehicleDefinition.bodyColor}
           accentColor={vehicleDefinition.accentColor}
@@ -1182,7 +1624,16 @@ export function GameplayScreen({
 
         {resultHeading && (
           <GameOverlay>
-            <h2 className="text-foreground text-2xl font-bold">
+            <h2
+              className={`flex items-center gap-2 text-2xl font-bold ${
+                hud.status === "finished"
+                  ? "text-amber-400"
+                  : "text-foreground"
+              }`}
+            >
+              {hud.status === "finished" && (
+                <Trophy className="size-6" aria-hidden="true" />
+              )}
               {resultHeading}
             </h2>
             <p className="text-muted-foreground text-sm">
@@ -1190,6 +1641,11 @@ export function GameplayScreen({
               {hud.coinsThisRun}
               {outcome?.isNewBest ? " · New best!" : ""}
             </p>
+            {outcome && outcome.newlyCompletedStage && (
+              <p className="text-xs font-semibold text-amber-400">
+                Stage complete! +{outcome.completionReward} bonus coins
+              </p>
+            )}
             {outcome && outcome.newObjectiveLabels.length > 0 && (
               <p className="text-brand-red text-xs font-semibold">
                 Objective complete: {outcome.newObjectiveLabels.join(", ")}
@@ -1202,6 +1658,14 @@ export function GameplayScreen({
             )}
             <div className="flex flex-wrap justify-center gap-2">
               <Button onClick={handleRetry}>Retry stage</Button>
+              {outcome?.nextStageId && (
+                <Button
+                  variant="secondary"
+                  onClick={() => onNextStage(outcome.nextStageId!)}
+                >
+                  Next Stage
+                </Button>
+              )}
               <Button variant="secondary" onClick={onExitToGarage}>
                 Garage
               </Button>

@@ -9,6 +9,7 @@ import {
   selectVehicle,
 } from "@/components/games/ridge-runner/engine/progression";
 import { getUpgradeCost } from "@/components/games/ridge-runner/engine/economy";
+import { OBJECTIVES } from "@/components/games/ridge-runner/engine/objectives";
 import { DEFAULT_VEHICLE_ID } from "@/components/games/ridge-runner/engine/vehicles";
 import type { RunResult } from "@/components/games/ridge-runner/engine/types";
 
@@ -24,6 +25,7 @@ function baseResult(overrides: Partial<RunResult> = {}): RunResult {
     coinsThisRun: 0,
     crashed: true,
     outOfFuel: false,
+    finished: false,
     ...overrides,
   };
 }
@@ -97,6 +99,32 @@ describe("applyRunResult", () => {
     const outcome = applyRunResult(save, baseResult({ crashed: true }));
     expect(outcome.save.totalRuns).toBe(1);
     expect(outcome.save.totalCrashes).toBe(1);
+  });
+
+  it("awards a one-time stage completion bonus and tracks it, without duplicating on replay", () => {
+    const save = createDefaultSave();
+    const outcome = applyRunResult(
+      save,
+      baseResult({ distance: 900, crashed: false, finished: true }),
+    );
+    expect(outcome.newlyCompletedStage).toBe(true);
+    expect(outcome.completionReward).toBeGreaterThan(0);
+    expect(outcome.save.completedStageIds).toContain("countryside");
+    expect(outcome.save.coins).toBe(
+      outcome.completionReward +
+        outcome.newObjectiveIds.reduce((sum, id) => {
+          const objective = OBJECTIVES.find((o) => o.id === id);
+          return sum + (objective?.reward ?? 0);
+        }, 0),
+    );
+
+    const replay = applyRunResult(
+      outcome.save,
+      baseResult({ distance: 900, crashed: false, finished: true }),
+    );
+    expect(replay.newlyCompletedStage).toBe(false);
+    expect(replay.completionReward).toBe(0);
+    expect(replay.save.completedStageIds).toEqual(["countryside"]);
   });
 });
 

@@ -15,6 +15,7 @@ function result(overrides: Partial<RunResult> = {}): RunResult {
     coinsThisRun: 0,
     crashed: true,
     outOfFuel: false,
+    finished: false,
     ...overrides,
   };
 }

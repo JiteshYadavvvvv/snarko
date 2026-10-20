@@ -1,10 +1,11 @@
 # Snarko
 
-A premium browser gaming platform. This repository is currently in
-**Phase 0 — Foundation**: project tooling, structure, design tokens, SEO
-plumbing, and testing/CI are set up. There is no catalog, game integration,
-or finished homepage yet — see [`docs/PHASES.md`](./docs/PHASES.md) for what's
-deferred and why.
+A premium browser gaming platform. **Phase 0 (foundation)** and **Phase 1
+(design system + homepage)** are implemented: project tooling, design tokens,
+SEO plumbing, testing/CI, a header/footer shell, and a homepage with a local,
+sample-data-driven game grid (search + category filtering). There is no real
+game catalogue, per-game pages, or any gameplay yet — see
+[`docs/PHASES.md`](./docs/PHASES.md) for what's deferred and why.
 
 ## Stack
 
@@ -28,7 +29,7 @@ deferred and why.
 ```bash
 nvm use                      # or install the Node version in .nvmrc manually
 npm install
-cp .env.example .env.local   # optional locally; see docs/SEO.md
+cp .env.example .env         # optional locally; see docs/SEO.md
 npm run dev
 ```
 

@@ -4,3 +4,8 @@
  * from what the app actually serves, and never invents game or catalog pages.
  */
 export const PUBLIC_ROUTES = ["/"] as const;
+
+export const NAV_ITEMS = [
+  { label: "Games", href: "/#games" },
+  { label: "Categories", href: "/#categories" },
+] as const;
